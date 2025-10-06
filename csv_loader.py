@@ -2,12 +2,13 @@
 """
 Load CSV files into the database (MySQL or PostgreSQL) using SQLAlchemy engine.
 """
+
+# Import Libraries
 import os
 import pandas as pd
 from sqlalchemy.exc import SQLAlchemyError
 from db import engine  # engine from db.py, DB-agnostic
 from config import Config
-import logging
 
 
 def load_csvs_to_db(folder_path=None, chunk_size=None):

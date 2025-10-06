@@ -21,10 +21,10 @@ You are a SQL assistant. Given the schema below, generate a valid SQL query for 
 Dialect: MySQL 
 
 Schema:
-XXXXXXXXXXXXXXXXXXXXXXXX
+olist_order_reviews_dataset - review_id, order_id, review_score, review_comment_title, review_comment_message, review_creation_date, review_answer_timestamp
 
 Question:
-XXXXXXXXXXXXXXXXXXXXXXXX
+List all orders that were delivered after their estimated delivery date. 
 """
 
 # Invoke the LLM
