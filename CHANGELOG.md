@@ -5,6 +5,20 @@ This project follows a simple versioning approach (v1, v2, ...).
 
 ---
 
+## [v3] - 2025-10-06
+### Added
+
+- Implemented kb_builder.py to automate knowledge base creation, annotation, and saving.
+- Introduced kb.json, a structured knowledge base generated using LLM-based annotation of each SQL table.
+- Each table entry now includes:
+  - A detailed table description
+  - Column-level descriptions with example values
+
+### Changed
+
+- Replaced the static schema import (schema_v2.py) with the dynamic knowledge base (kb.json) for richer SQL generation context.
+
+
 ## [v2] - 2025-09-28
 ### Added
 - Introduced `schema_v2.py` to store and import full schema details (table names and columns) directly.
