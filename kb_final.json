@@ -1,113 +1,113 @@
 {
     "olist_customers_dataset": [
-        "Table containing information about customers and their locations, with unique identifiers for customers and order delivery locations.",
+        "Table containing customer information including unique identifiers and location details.",
         [
             [
-                "customer_id: Unique identifier assigned to each customer for every order, sample values: 'bb98e27058a8d72162176e336a2b97a2', '8c4946e7875097b10d6f021732685fa2'"
+                "customer_id: Unique identifier for each customer, sample values: '5cc2000a02011f09463e935d6f33ea6d', 'bc8bc13c6748cdaa83178cdf94ba57a9'"
             ],
             [
-                "customer_unique_id: Unique identifier to identify customers making repurchases at the store, sample values: '22745c06a87ddc1142c22ce98c5bf8d1', '7e04d5e356f71deec4b6275a4b5d1c7e'"
+                "customer_unique_id: Unique identifier for each customer allowing identification of repurchases, sample values: '9280630f31756d3c7a7abe695a723d09', '3d18156a1dff6d57e215431e45574371'"
             ],
             [
-                "customer_zip_code_prefix: Prefix of the zip code for the customer's location, sample values: 17033, 89560"
+                "customer_zip_code_prefix: Numeric prefix of customer's ZIP code, sample values: 63680, 7054"
             ],
             [
-                "customer_city: City where the customer is located, sample values: 'bauru', 'videira'"
+                "customer_city: City where the customer is located, sample values: 'parambu', 'guarulhos'"
             ],
             [
-                "customer_state: State where the customer is located, sample values: 'SP', 'SC'"
+                "customer_state: State where the customer is located, sample values: 'CE', 'SP'"
             ]
         ]
     ],
     "olist_geolocation_dataset": [
-        "Table with information about Brazilian zip codes, their latitudes and longitudes, cities, and states",
+        "Table containing Brazilian zip codes and their corresponding lat/lng coordinates used for mapping and distance calculations.",
         [
             [
-                "geolocation_zip_code_prefix: Brazilian zip code prefix in the dataset, sample values: 8717, 20785"
+                "geolocation_zip_code_prefix: The prefix of Brazilian zip codes, sample values: 7153, 39827"
             ],
             [
-                "geolocation_lat: Latitude coordinates of the zip codes, sample values: -23.561366266214527, -22.883979070488827"
+                "geolocation_lat: The latitude coordinates associated with the zip codes, sample values: -23.38152125007212, -17.809487323773734"
             ],
             [
-                "geolocation_lng: Longitude coordinates of the zip codes, sample values: -46.18646183891071, -43.264968177477165"
+                "geolocation_lng: The longitude coordinates associated with the zip codes, sample values: -46.44659355828381, -41.78475993625214"
             ],
             [
-                "geolocation_city: City corresponding to the zip code, sample values: mogi das cruzes, rio de janeiro"
+                "geolocation_city: The city names corresponding to the zip codes, sample values: 'guarulhos', 'pote'"
             ],
             [
-                "geolocation_state: State corresponding to the zip code, sample values: SP, RJ"
+                "geolocation_state: The state codes (e.g., SP for Sao Paulo) associated with the zip codes, sample values: 'SP', 'MG'"
             ]
         ]
     ],
     "olist_order_items_dataset": [
-        "Table containing data about items purchased within each order from Olist e-commerce platform.",
+        "Table containing data about the items purchased within each Olist order.",
         [
             [
-                "order_id: unique identifier for each order, sample values: 'ead9ba9ae78cb9568101cda32b516dc3', 'db33c2c3cc0b7e95e31b9ea491ece2a9'"
+                "order_id: unique identifier for each order, sample values: '9d0f89ac7841fe621cb103d22838fb80', '05e2ab8de37670d9d0524473585092ec'"
             ],
             [
-                "order_item_id: identifier for each item within an order, sample values: 1, 2"
+                "order_item_id: identifier for each item in an order, sample values: 1, 2"
             ],
             [
-                "product_id: unique identifier for each product, sample values: '35afc973633aaeb6b877ff57b2793310', 'a3f39453cb3bacd60e3828f50a2c9c23'"
+                "product_id: unique identifier for each product, sample values: '0f2c1048222e26ef6d48bed2dc676a9b', 'd1c427060a0f73f6b889a5c7c61f2ac4'"
             ],
             [
-                "seller_id: identifier for each seller, sample values: '4a3ca9315b744ce9f8e9374361493884', 'e38db885400cd35c71dfd162f2c1dbcf'"
+                "seller_id: unique identifier for each seller, sample values: '0dfbed20065e425d2eaefb101f9816c0', 'a1043bafd471dff536d0c462352beb48'"
             ],
             [
-                "shipping_limit_date: date and time limit for shipping, sample values: '2017-12-26 09:33:00', '2018-08-17 04:31:28'"
+                "shipping_limit_date: date and time limit for shipping the item, sample values: '2018-05-16 23:30:47', '2017-12-04 03:23:37'"
             ],
             [
-                "price: price of the item, sample values: 86.9, 64.9"
+                "price: price of the item, sample values: 25.18, 149.99"
             ],
             [
-                "freight_value: cost of shipping, sample values: 14.94, 23.6"
+                "freight_value: shipping cost of the item, sample values: 12.79, 23.85"
             ]
         ]
     ],
     "olist_order_payments_dataset": [
-        "Table contains data about orders payment options.",
+        "Table containing data about the orders payment options.",
         [
             [
-                "order_id: unique identifier for each order, sample values: '9a5ea74a2fd85889e60e9bdb186cd1f0', 'e72e22dce48aaee824371b8e02641f15'"
+                "order_id: unique identifier for each order, sample values: 'ebe8e5e35f85b19e3b8132a054bbf523', '51efa345a1180ca3879442a31b0a265a'"
             ],
             [
-                "payment_sequential: sequential payment number for each order, sample values: 1, 2"
+                "payment_sequential: sequential number for each payment within an order, sample values: 1, 2"
             ],
             [
-                "payment_type: type of payment used for the order, sample values: 'credit_card', 'voucher'"
+                "payment_type: type of payment chosen for the order, sample values: 'credit_card', 'voucher'"
             ],
             [
-                "payment_installments: number of installments for the payment, sample values: 2, 12"
+                "payment_installments: number of installments for the payment, sample values: 6, 1"
             ],
             [
-                "payment_value: total value of the payment, sample values: 155.23, 1471.51"
+                "payment_value: value of the payment made, sample values: 123.89, 194.88"
             ]
         ]
     ],
     "olist_order_reviews_dataset": [
-        "Table containing data about customer reviews after purchase made on Olist platform.",
+        "Table containing data about customer reviews post purchase.",
         [
             [
-                "review_id: Unique identifier for each review, sample values: '3fbfd473e5cf163d6b29b62521d7e7d4', 'c058842dad4ad2fc1c2e8117350be4e6'"
+                "review_id: Unique identifier for each review, sample values: 'bdc146f5b687a560130d8f312b4d8b3c', 'ec2f5c6e053a85e84301b3369f79ef8c'"
             ],
             [
-                "order_id: Unique identifier for each order associated with the review, sample values: '6e8f171a966c53e6442c158fc328eb1a', '41c4425628d692f2d1b59c3c6702429e'"
+                "order_id: Unique identifier for each order associated with the review, sample values: '9f3f85ddc354be372be6cde53a577cd5', 'b56bcbb57a9be94114e2dfb18399193e'"
             ],
             [
-                "review_score: Numerical rating given by the customer, sample values: 5, 4"
+                "review_score: The rating score given in the review, sample values: 5, 4"
             ],
             [
-                "review_comment_title: Title of the review comment, sample values: None, None"
+                "review_comment_title: Title of the comment in the review, may be NULL, sample values: None"
             ],
             [
-                "review_comment_message: Detailed message of the review comment, sample values: 'Melhor sai-te recomendo sempre vou compra aqui', None"
+                "review_comment_message: Additional detailed message in the review comment, sample values: 'Chegou no Prazo!! Ameeei a encomenda', 'Não havia identificado que o produto não era elétrico...'"
             ],
             [
-                "review_creation_date: Date and time when the review was created, sample values: '2017-12-27 00:00:00', '2018-03-15 00:00:00'"
+                "review_creation_date: Date and time when the review was created, sample values: '2017-07-13 00:00:00', '2018-08-04 00:00:00'"
             ],
             [
-                "review_answer_timestamp: Date and time of the Olist response to the review, sample values: '2017-12-28 12:20:27', '2018-03-18 10:15:05'"
+                "review_answer_timestamp: Timestamp of when the review was answered, sample values: '2017-07-13 19:25:34', '2018-08-04 19:50:33'"
             ]
         ]
     ],
@@ -115,88 +115,88 @@
         "Table containing order-level details for Olist e-commerce platform.",
         [
             [
-                "order_id: unique identifier for each order, sample values: aa5bc7c80064a78e898a7c2defceb690, ed9f2f1d49ae779e0d1953d6197fbe43"
+                "order_id: Unique identifier for each order, sample values: 'cd1afe54001178b012be992f11234a8e', '4899eb30202787ac652e0c9d9f690edb'"
             ],
             [
-                "customer_id: unique identifier for each customer, sample values: f2b15f9e51e4e6f10da92a8030b95566, d6e553e33ac0cde8c7073e962a35bb77"
+                "customer_id: Unique identifier for each customer placing the order, sample values: 'd30553b51b521018932b96d1eb08d678', '2586a9c3d898a19110c726babb5ab170'"
             ],
             [
-                "order_status: status of the order, sample values: delivered"
+                "order_status: Status of the order, sample values: 'delivered', 'delivered'"
             ],
             [
-                "order_purchase_timestamp: timestamp when the order was purchased, sample values: 2018-01-09 08:29:41, 2017-10-09 12:58:44"
+                "order_purchase_timestamp: Timestamp when the order was purchased, sample values: '2017-12-11 18:24:33', '2018-05-02 18:06:48'"
             ],
             [
-                "order_approved_at: timestamp when the order was approved, sample values: 2018-01-09 08:38:20, 2017-10-10 03:26:59"
+                "order_approved_at: Timestamp when the order was approved, sample values: '2017-12-11 18:36:25', '2018-05-02 18:58:19'"
             ],
             [
-                "order_delivered_carrier_date: timestamp when the order was handed to the carrier, sample values: 2018-01-16 01:48:42, 2017-10-10 16:28:06"
+                "order_delivered_carrier_date: Timestamp when the order was handed to the carrier, sample values: '2017-12-14 00:23:47', '2018-05-04 14:55:00'"
             ],
             [
-                "order_delivered_customer_date: timestamp when the order was delivered to the customer, sample values: 2018-02-09 12:38:58, 2017-10-20 19:33:59"
+                "order_delivered_customer_date: Timestamp when the order was delivered to the customer, sample values: '2017-12-15 21:48:31', '2018-05-15 00:41:42'"
             ],
             [
-                "order_estimated_delivery_date: estimated delivery date for the order, sample values: 2018-02-15 00:00:00, 2017-11-22 00:00:00"
+                "order_estimated_delivery_date: Estimated delivery date for the order, sample values: '2017-12-28 00:00:00', '2018-05-28 00:00:00'"
             ]
         ]
     ],
     "olist_products_dataset": [
-        "The table includes data about products sold by Olist, a Brazilian e-commerce platform connecting small businesses to marketplaces.",
+        "Table containing data about products sold by Olist.",
         [
             [
-                "product_id: unique identifier for each product, sample values: 'b5d70fb85371ee18cb7742bb1f7fb119', '8e1446d14972eb9ba34dd6273315f419'"
+                "product_id: unique identifier for each product, sample values: '21c0985594816cf11cf7cfc0631f6f1f', 'bea920589ef5e1949b4627e0574b877b'"
             ],
             [
-                "product_category_name: category name of the product, sample values: 'brinquedos', 'utilidades_domesticas'"
+                "product_category_name: category name of the product, may contain null values, sample values: 'moveis_decoracao', 'utilidades_domesticas'"
             ],
             [
-                "product_name_length: length of the product name, sample values: 38.0, 59.0"
+                "product_name_lenght: length of the product name, sample values: 34.0, 41.0"
             ],
             [
-                "product_description_length: length of the product description, sample values: 217.0, 1043.0"
+                "product_description_lenght: length of the product description, may contain null values, sample values: 569.0, 356.0"
             ],
             [
-                "product_photos_quantity: number of photos for the product, sample values: 1.0, 4.0"
+                "product_photos_qty: quantity of photos for the product, may contain null values, sample values: 1.0, 3.0"
             ],
             [
-                "product_weight_g: weight of the product in grams, sample values: 400.0, 300.0"
+                "product_weight_g: weight of the product in grams, sample values: 800.0, 200.0"
             ],
             [
-                "product_length_cm: length of the product in centimeters, sample values: 45.0, 16.0"
+                "product_length_cm: length of the product in centimeters, sample values: 30.0, 20.0"
             ],
             [
-                "product_height_cm: height of the product in centimeters, sample values: 15.0, 9.0"
+                "product_height_cm: height of the product in centimeters, sample values: 30.0, 10.0"
             ],
             [
-                "product_width_cm: width of the product in centimeters, sample values: 35.0, 11.0"
+                "product_width_cm: width of the product in centimeters, sample values: 30.0, 16.0"
             ]
         ]
     ],
     "olist_sellers_dataset": [
-        "Data about sellers who fulfilled orders at Olist.",
+        "Table contains data about sellers fulfilling orders at Olist.",
         [
             [
-                "seller_id: unique identifier for each seller, sample values: '59b22a78efb79a4797979612b885db36', '8ab42aa58097fd4668d60cc648225d5f'"
+                "seller_id: unique identifier for each seller, sample values: '404e1ba01358af4cd63f679b2c4d1fa1', '712efd3b68f9686dc856b84abd0f21ae'"
             ],
             [
-                "seller_zip_code_prefix: first few digits of seller's zip code, sample values: 38414, 74150"
+                "seller_zip_code_prefix: the first part of seller's zip code, sample values: 36032, 82130"
             ],
             [
-                "seller_city: city where the seller is located, sample values: 'uberlandia', 'goiania'"
+                "seller_city: city where the seller is located, sample values: 'juiz de fora', 'curitiba'"
             ],
             [
-                "seller_state: state where the seller is located, sample values: 'MG', 'GO'"
+                "seller_state: state where the seller is located, sample values: 'MG', 'PR'"
             ]
         ]
     ],
     "product_category_name_translation": [
-        "Table containing translations of product category names from Portuguese to English.",
+        "Table containing translated product category names from Portuguese to English.",
         [
             [
-                "product_category_name: Portuguese product category name, sample values: sinalizacao_e_seguranca, brinquedos"
+                "product_category_name: Original product category name in Portuguese, sample values: moveis_colchao_e_estofado, fashion_calcados"
             ],
             [
-                "product_category_name_english: English translated product category name, sample values: signaling_and_security, toys"
+                "product_category_name_english: Translated product category name in English, sample values: furniture_mattress_and_upholstery, fashion_shoes"
             ]
         ]
     ]

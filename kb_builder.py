@@ -73,23 +73,29 @@ class AnnotatorState(TypedDict):
     data_sample: str
     output: str
 
-template = ChatPromptTemplate.from_messages([
+prompt_template = ChatPromptTemplate.from_messages([
     ("system", """
-You are an intelligent data annotator. Please annotate data as mentioned by human and give output without any verbose and without any additional explanation.
-You will be given SQL table description and sample columns from the SQL table. The description that you generate will be given as input to a text-to-SQL automated system.
-Output of the project depends on how you generate the description. Make sure your description has all possible nuances.
+You are a skilled data annotator. Your task is to generate precise and detailed descriptions for SQL tables and their columns. 
+Do not include explanations, commentary, or any extra text—output only what is requested. 
+
+The descriptions you generate will be fed to a text-to-SQL system, so accuracy and nuance are critical. Ensure you capture all meaningful information present in the table structure and data samples.
 """),
 
     ("human", '''
-- Based on the column data, please generate description of entire table along with description for each column and sample values (1 or 2) for each column.
-- While generating column descriptions, please look at SQL table description given to you and try to include them in column description.
-- DO NOT write generic description like "It provides a comprehensive view of the order lifecycle". Focus on concrete details seen in columns.
+- Analyze the provided SQL table and sample rows, and generate a detailed description for the table as a whole.  
+- For each column, provide:
+    * A precise description reflecting its role and data.
+    * 1 or 2 representative sample values.  
+- Incorporate any hints from the SQL table description into the column descriptions.  
+- Avoid generic statements; base descriptions on concrete column details.
 
-Context: Olist is a Brazilian e-commerce platform connecting small businesses to marketplaces. Orders can include multiple items and sellers.
+Context: Olist is a Brazilian e-commerce platform connecting small businesses to marketplaces. Orders may contain multiple items and sellers.
 
 Output format:
-["<table description>", [["<column_1>: description, sample values: v1, v2..."],
-["<column_2>: description, sample values: v1, v2..."]]]
+["<table description>", [
+    ["<column_1>: description, sample values: v1, v2"],
+    ["<column_2>: description, sample values: v1, v2"]
+]]
 
 SQL table description:
 {description}
@@ -102,7 +108,7 @@ Sample rows from the table:
 # LangGraph Node
 def annotate_node(state: AnnotatorState):
     """Single node that formats prompt → runs LLM → returns annotation output."""
-    prompt = template.invoke({
+    prompt = prompt_template.invoke({
         "description": state["description"],
         "data_sample": state["data_sample"]
     })
