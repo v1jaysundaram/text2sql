@@ -1,0 +1,167 @@
+
+#knowledge_base.py
+"""
+Generates annotated descriptions of SQL tables using an LLM workflow.
+"""
+
+# Import Libraries
+import pandas as pd
+import tqdm
+import time
+from typing import TypedDict
+from db import engine  # your DB connection engine
+import json
+import ast
+
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langgraph.graph import StateGraph, START, END
+
+
+# Table descriptions
+table_description = {
+    "olist_customers_dataset": "This dataset has information about the customer and its location. Used to identify unique customers in the orders dataset and to find the orders delivery location. At our system each order is assigned to a unique customer_id. This means that the same customer will get different ids for different orders. The purpose of having a customer_unique_id on the dataset is to allow you to identify customers that made repurchases at the store.",
+    
+    "olist_geolocation_dataset": "This dataset has information about Brazilian zip codes and its lat/lng coordinates. Used to plot maps and find distances between sellers and customers.",
+    
+    "olist_order_items_dataset": "This dataset includes data about the items purchased within each order.",
+    
+    "olist_order_payments_dataset": "This dataset includes data about the orders payment options.",
+    
+    "olist_order_reviews_dataset": "This dataset includes data about the reviews made by the customers after purchase.",
+    
+    "olist_orders_dataset": "This is the core dataset containing order-level details linking all other datasets.",
+    
+    "olist_products_dataset": "This dataset includes data about the products sold by Olist.",
+    
+    "olist_sellers_dataset": "This dataset includes data about the sellers that fulfilled orders made at Olist.",
+    
+    "product_category_name_translation": "Translates the product_category_name to English."
+}
+
+# Utility function: Fetch sample data
+def read_sql_sample(table_name: str, n: int = 5) -> pd.DataFrame:
+    """
+    Fetch n random rows from the given table, DB-agnostic.
+
+    Args:
+        table_name (str): Name of the SQL table to sample.
+        n (int): Number of random rows to fetch (default = 5).
+
+    Returns:
+        pd.DataFrame: Sampled rows.
+    """
+    dialect = engine.dialect.name
+    if dialect == "mysql":
+        rand_func = "RAND()"
+    elif dialect == "postgresql":
+        rand_func = "RANDOM()"
+    else:
+        raise ValueError(f"Unsupported DB dialect: {dialect}")
+
+    query = f"SELECT * FROM {table_name} ORDER BY {rand_func} LIMIT {n};"
+    df_sample = pd.read_sql(query, con=engine)
+    return df_sample
+
+
+# Model and Prompt Setup
+llm = ChatOpenAI()
+
+# LangGraph State
+class AnnotatorState(TypedDict):
+    description: str
+    data_sample: str
+    output: str
+
+template = ChatPromptTemplate.from_messages([
+    ("system", """
+You are an intelligent data annotator. Please annotate data as mentioned by human and give output without any verbose and without any additional explanation.
+You will be given SQL table description and sample columns from the SQL table. The description that you generate will be given as input to a text-to-SQL automated system.
+Output of the project depends on how you generate the description. Make sure your description has all possible nuances.
+"""),
+
+    ("human", '''
+- Based on the column data, please generate description of entire table along with description for each column and sample values (1 or 2) for each column.
+- While generating column descriptions, please look at SQL table description given to you and try to include them in column description.
+- DO NOT write generic description like "It provides a comprehensive view of the order lifecycle". Focus on concrete details seen in columns.
+
+Context: Olist is a Brazilian e-commerce platform connecting small businesses to marketplaces. Orders can include multiple items and sellers.
+
+Output format:
+["<table description>", [["<column_1>: description, sample values: v1, v2..."],
+["<column_2>: description, sample values: v1, v2..."]]]
+
+SQL table description:
+{description}
+
+Sample rows from the table:
+{data_sample}
+''')
+])
+
+# LangGraph Node
+def annotate_node(state: AnnotatorState):
+    """Single node that formats prompt → runs LLM → returns annotation output."""
+    prompt = template.invoke({
+        "description": state["description"],
+        "data_sample": state["data_sample"]
+    })
+    response = llm.invoke(prompt)
+    return {"output": response.content}
+
+# Build Workflow
+graph = StateGraph(AnnotatorState)
+graph.add_node("annotate", annotate_node)
+graph.add_edge(START, "annotate")
+graph.add_edge("annotate", END)
+workflow = graph.compile()
+
+
+# Main function to build knowledge base
+def build_knowledge_base(save_path: str = "kb_final.json"):
+    """
+    Build knowledge base by annotating each table using the workflow and save it to a JSON file.
+
+    Args:
+        save_path (str): Path to save the JSON file containing the knowledge base.
+
+    Returns:
+        dict: Dictionary of table annotations (all as lists).
+    """
+    kb_final = {}
+
+    for table_name, desc in tqdm.tqdm(table_description.items()):
+        # Step 1: Sample data
+        df = read_sql_sample(table_name)
+        df_dict = str(df.to_dict())
+
+        # Step 2: Run workflow
+        result = workflow.invoke({
+            "description": desc,
+            "data_sample": df_dict
+        })
+
+        # Step 3: Get output and convert to Python object
+        response = result.get("output", "")
+        print(response)
+        print("=" * 80)
+
+        try:
+            # Safely evaluate Python-style literal (list/dict)
+            kb_final[table_name] = ast.literal_eval(response)
+        except Exception as e:
+            print(f"Failed to parse output for {table_name}: {e}")
+            kb_final[table_name] = []
+
+        # Pause to avoid rate limits
+        time.sleep(5)
+
+    # Step 4: Save to JSON
+    with open(save_path, "w", encoding="utf-8") as f:
+        json.dump(kb_final, f, indent=4, ensure_ascii=False)
+
+    print(f"Knowledge base saved to {save_path}")
+    return kb_final
+
+
+build_knowledge_base()
