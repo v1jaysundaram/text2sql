@@ -16,7 +16,7 @@ load_dotenv()
 llm = ChatOpenAI()
 
 # Load the knowledge base
-with open("kb_final.json", "r", encoding="utf-8") as f:
+with open("kb.json", "r", encoding="utf-8") as f:
     KB = json.load(f)
 
 # Prompt Template

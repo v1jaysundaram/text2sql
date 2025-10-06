@@ -124,7 +124,7 @@ workflow = graph.compile()
 
 
 # Main function to build knowledge base
-def build_knowledge_base(save_path: str = "kb_final.json"):
+def build_knowledge_base(save_path: str = "kb.json"):
     """
     Build knowledge base by annotating each table using the workflow and save it to a JSON file.
 
@@ -134,7 +134,7 @@ def build_knowledge_base(save_path: str = "kb_final.json"):
     Returns:
         dict: Dictionary of table annotations (all as lists).
     """
-    kb_final = {}
+    kb = {}
 
     for table_name, desc in tqdm.tqdm(table_description.items()):
         # Step 1: Sample data
@@ -154,20 +154,20 @@ def build_knowledge_base(save_path: str = "kb_final.json"):
 
         try:
             # Safely evaluate Python-style literal (list/dict)
-            kb_final[table_name] = ast.literal_eval(response)
+            kb[table_name] = ast.literal_eval(response)
         except Exception as e:
             print(f"Failed to parse output for {table_name}: {e}")
-            kb_final[table_name] = []
+            kb[table_name] = []
 
         # Pause to avoid rate limits
         time.sleep(5)
 
     # Step 4: Save to JSON
     with open(save_path, "w", encoding="utf-8") as f:
-        json.dump(kb_final, f, indent=4, ensure_ascii=False)
+        json.dump(kb, f, indent=4, ensure_ascii=False)
 
     print(f"Knowledge base saved to {save_path}")
-    return kb_final
+    return kb
 
 
 build_knowledge_base()
