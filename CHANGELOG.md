@@ -5,6 +5,17 @@ This project follows a simple versioning approach (v1, v2, ...).
 
 ---
 
+## [v4] - 2025-10-07
+### Added
+
+- Introduced a Router Agent that filters the Knowledge Base to select only the relevant tables needed to answer each query.
+
+### Changed
+
+- Moved SQL dialect configuration from user input to a direct injection within the SQL Generator.
+
+---
+
 ## [v3] - 2025-10-06
 ### Added
 
@@ -18,6 +29,7 @@ This project follows a simple versioning approach (v1, v2, ...).
 
 - Replaced the static schema import (schema_v2.py) with the dynamic knowledge base (kb.json) for richer SQL generation context.
 
+---
 
 ## [v2] - 2025-09-28
 ### Added

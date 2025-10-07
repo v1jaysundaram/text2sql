@@ -25,7 +25,7 @@ class SQLState(TypedDict):
     user_query: str
     sql_query: str
     selected_tables: List[str]
-    selected_tables_descriptions: dict
+    filtered_kb: dict
 
 
 # Load the knowledge base
@@ -68,7 +68,7 @@ Output only the SQL query, no headers nothing.
 """),
 
     ("human", """
-Schema: {selected_tables_descriptions}
+Schema: {filtered_kb}
 
 SQL Dialect: {sql_dialect}   
 
@@ -103,7 +103,7 @@ def router_agent(state: SQLState) -> SQLState:
     state["selected_tables"] = selected_tables
 
     # Collect descriptions for selected tables including columns
-    selected_tables_descriptions = {
+    filtered_kb = {
         table: {
         "description": KB[table][0],     # Table-level description
         "columns": KB[table][1]          # Column-level details (list of lists)
@@ -111,7 +111,7 @@ def router_agent(state: SQLState) -> SQLState:
     for table in selected_tables
     }
 
-    state["selected_tables_descriptions"] = selected_tables_descriptions
+    state["filtered_kb"] = filtered_kb
 
     return state
 
@@ -122,7 +122,7 @@ def sql_generator(state: SQLState) -> SQLState:
     sql_chain = sqlgen_template | llm
 
     response = sql_chain.invoke({
-        "selected_tables_descriptions": state["selected_tables_descriptions"],
+        "filtered_kb": state["filtered_kb"],
         "user_query": state["user_query"],
         "sql_dialect": Config.DB_DIALECT 
     })
@@ -147,20 +147,20 @@ workflow = graph.compile()
 
 # Test the workflow
 
-user_query = "How many customers are there in the state of 'Minas Gerais'?"
+user_query = "Which sellers have sold products in more than 3 different categories?"
 
 # Initial state
 test_state: SQLState = {
     "user_query": user_query,
     "sql_query": "",
     "selected_tables": [],
-    "selected_tables_descriptions": {}
+    "filtered_kb": {}
 }
 
 # Run the full workflow
 final_state = workflow.invoke(test_state)
 
-print("Generated SQL Query:\n", final_state["sql_query"])
+print(final_state["sql_query"])
 
 
     

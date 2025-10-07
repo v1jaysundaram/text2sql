@@ -30,7 +30,7 @@ Schema:
 {KB}
 
 Question:
-How many customers are there in the state of 'Minas Gerais'?
+"For each state, show the number of orders, average review score, and total payment."
 """
 
 # Invoke the LLM
