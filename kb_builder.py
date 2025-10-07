@@ -39,18 +39,9 @@ table_description = {
     "product_category_name_translation": "Translates the product_category_name to English."
 }
 
-# Utility function: Fetch sample data
-def read_sql_sample(table_name: str, n: int = 5) -> pd.DataFrame:
-    """
-    Fetch n random rows from the given table, DB-agnostic.
+# Fetch sample data
+def read_sql_sample(table_name: str) -> pd.DataFrame:
 
-    Args:
-        table_name (str): Name of the SQL table to sample.
-        n (int): Number of random rows to fetch (default = 5).
-
-    Returns:
-        pd.DataFrame: Sampled rows.
-    """
     dialect = engine.dialect.name
     if dialect == "mysql":
         rand_func = "RAND()"
@@ -107,33 +98,29 @@ Sample rows from the table:
 
 # LangGraph Node
 def annotate_node(state: AnnotatorState):
-    """Single node that formats prompt → runs LLM → returns annotation output."""
+
     prompt = prompt_template.invoke({
         "description": state["description"],
         "data_sample": state["data_sample"]
     })
     response = llm.invoke(prompt)
+
     return {"output": response.content}
 
 # Build Workflow
 graph = StateGraph(AnnotatorState)
+
 graph.add_node("annotate", annotate_node)
+
 graph.add_edge(START, "annotate")
 graph.add_edge("annotate", END)
+
 workflow = graph.compile()
 
 
 # Main function to build knowledge base
 def build_knowledge_base(save_path: str = "kb.json"):
-    """
-    Build knowledge base by annotating each table using the workflow and save it to a JSON file.
 
-    Args:
-        save_path (str): Path to save the JSON file containing the knowledge base.
-
-    Returns:
-        dict: Dictionary of table annotations (all as lists).
-    """
     kb = {}
 
     for table_name, desc in tqdm.tqdm(table_description.items()):
