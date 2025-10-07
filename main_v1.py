@@ -21,10 +21,10 @@ You are a SQL assistant. Given the schema below, generate a valid SQL query for 
 Dialect: MySQL 
 
 Schema:
-olist_order_reviews_dataset - review_id, order_id, review_score, review_comment_title, review_comment_message, review_creation_date, review_answer_timestamp
+list_customer_dataset - customer_id, customer_unique_id, customer_zip_code_prefix, customer_city, customer_state
 
 Question:
-List all orders that were delivered after their estimated delivery date. 
+How many customers are there in the state of 'Minas Gerais'?
 """
 
 # Invoke the LLM

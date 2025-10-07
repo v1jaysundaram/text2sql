@@ -50,7 +50,7 @@ def read_sql_sample(table_name: str) -> pd.DataFrame:
     else:
         raise ValueError(f"Unsupported DB dialect: {dialect}")
 
-    query = f"SELECT * FROM {table_name} ORDER BY {rand_func} LIMIT {n};"
+    query = f"SELECT * FROM {table_name} ORDER BY {rand_func} LIMIT 5;"
     df_sample = pd.read_sql(query, con=engine)
     return df_sample
 
@@ -64,7 +64,7 @@ class AnnotatorState(TypedDict):
     data_sample: str
     output: str
 
-prompt_template = ChatPromptTemplate.from_messages([
+annotate_template = ChatPromptTemplate.from_messages([
     ("system", """
 You are a skilled data annotator. Your task is to generate precise and detailed descriptions for SQL tables and their columns. 
 Do not include explanations, commentary, or any extra text—output only what is requested. 
@@ -99,7 +99,9 @@ Sample rows from the table:
 # LangGraph Node
 def annotate_node(state: AnnotatorState):
 
-    prompt = prompt_template.invoke({
+    chain = annotate_template | llm
+    
+    prompt = chain.invoke({
         "description": state["description"],
         "data_sample": state["data_sample"]
     })
@@ -112,7 +114,7 @@ graph = StateGraph(AnnotatorState)
 
 graph.add_node("annotate", annotate_node)
 
-graph.add_edge(START, "annotate")
+graph.add_edge(START, "annotate") 
 graph.add_edge("annotate", END)
 
 workflow = graph.compile()
