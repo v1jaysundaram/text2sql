@@ -5,6 +5,17 @@ This project follows a simple versioning approach (v1, v2, ...).
 
 ---
 
+## [v4.1] - 2025-10-08
+### Added
+
+- Enhanced Knowledge Base Builder (kb_builder.py) to include more detailed context:
+
+    - Table descriptions now include key columns, but less important ones may be ignored in table summary.
+
+    - Column-level descriptions now always contain all meaningful columns, data types with representative sample values.
+
+---
+
 ## [v4] - 2025-10-07
 ### Added
 
