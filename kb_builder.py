@@ -64,29 +64,42 @@ class AnnotatorState(TypedDict):
     data_sample: str
     output: str
 
-annotate_template = ChatPromptTemplate.from_messages([
-    ("system", """
-You are a skilled data annotator. Your task is to generate precise and detailed descriptions for SQL tables and their columns. 
-Do not include explanations, commentary, or any extra text—output only what is requested. 
+####### Annotate Tables ##########
 
-The descriptions you generate will be fed to a text-to-SQL system, so accuracy and nuance are critical. Ensure you capture all meaningful information present in the table structure and data samples.
+prompt_annotate = ChatPromptTemplate.from_messages([
+    ("system", """
+You are a skilled data annotator. Your task is to generate structured descriptions for SQL tables and their columns.
+The descriptions will be used by a Text-to-SQL system.
+
+Do NOT include commentary or explanations—return only the requested structured output.
 """),
 
     ("human", '''
-- Analyze the provided SQL table and sample rows, and generate a detailed description for the table as a whole.  
-- For each column, provide:
-    * A precise description reflecting its role and data.
-    * 1 or 2 representative sample values.  
-- Incorporate any hints from the SQL table description into the column descriptions.  
-- Avoid generic statements; base descriptions on concrete column details.
+Analyze the SQL table and its sample rows. Generate the following **in a fixed format**:
 
-Context: Olist is a Brazilian e-commerce platform connecting small businesses to marketplaces. Orders may contain multiple items and sellers.
+1. **Table description**: 
+   - Must **always** start with: "Table represents <what the table is about> (includes <important columns>)".
+   - Only include **important columns** in the parentheses. Trivial columns like IDs or timestamps can be **omitted** unless essential.
 
-Output format:
-["<table description>", [
-    ["<column_1>: description, sample values: v1, v2"],
-    ["<column_2>: description, sample values: v1, v2"]
-]]
+2. **Columns list**:
+   - Include **all columns** present in the table.
+   - For each column:
+       * Give a detailed description of what it represents and the data type.
+       * Include 1 or 2 representative values from the sample rows.
+
+Context: These tables ere provided by Olist, the largest department store in Brazilian marketplaces. It's an e-commerce platform connecting small businesses to marketplaces.
+
+Output should look like below in form of list of list of strings properly.
+MAKE SURE YOU ALWAYS CLOSE THE QUOTES in list of strings properly.
+     
+[
+  "<table description based on all column value>",
+  [
+    ["<column_1>: detail description of column along with datatype, sample values: v1, v2"], 
+    ["<column_2>: detail description of column along with datatype, sample values: v1, v2"]
+    ...
+  ]
+]
 
 SQL table description:
 {description}
@@ -96,18 +109,19 @@ Sample rows from the table:
 ''')
 ])
 
-# LangGraph Node
+
+
 def annotate_node(state: AnnotatorState):
 
-    chain = annotate_template | llm
+    chain = prompt_annotate | llm
     
-    prompt = chain.invoke({
+    response  = chain.invoke({
         "description": state["description"],
         "data_sample": state["data_sample"]
     })
-    response = llm.invoke(prompt)
 
-    return {"output": response.content}
+    state["output"] = response.content
+    return state
 
 # Build Workflow
 graph = StateGraph(AnnotatorState)
@@ -137,16 +151,11 @@ def build_knowledge_base(save_path: str = "kb.json"):
         })
 
         # Step 3: Get output and convert to Python object
-        response = result.get("output", "")
+        response = result.get("output", "").replace('```', '')
         print(response)
         print("=" * 80)
 
-        try:
-            # Safely evaluate Python-style literal (list/dict)
-            kb[table_name] = ast.literal_eval(response)
-        except Exception as e:
-            print(f"Failed to parse output for {table_name}: {e}")
-            kb[table_name] = []
+        kb[table_name] = eval(response)
 
         # Pause to avoid rate limits
         time.sleep(5)
