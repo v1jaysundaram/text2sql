@@ -87,10 +87,11 @@ Analyze the SQL table and its sample rows. Generate the following **in a fixed f
        * Give a detailed description of what it represents and the data type.
        * Include 1 or 2 representative values from the sample rows.
 
-Context: These tables ere provided by Olist, the largest department store in Brazilian marketplaces. It's an e-commerce platform connecting small businesses to marketplaces.
+Context: These tables are provided by Olist, the largest department store in Brazilian marketplaces. It's an e-commerce platform connecting small businesses to marketplaces.
 
-Output should look like below in form of list of list of strings properly.
+Output should strictly look like below in form of list of list of strings.
 MAKE SURE YOU ALWAYS CLOSE THE QUOTES in list of strings properly.
+Do not include any extra text, or symbols in the start like - python, sql
      
 [
   "<table description based on all column value>",
