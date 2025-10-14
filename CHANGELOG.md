@@ -5,6 +5,27 @@ This project follows a simple versioning approach (v1, v2, ...).
 
 ---
 
+## [v5] - 2025-10-14
+
+### Changed
+## [v5] - 2025-10-14
+
+### Changed
+## [v5] - 2025-10-14
+
+### Changed
+
+- Removed the Table Router Agent because it was not always picking the right tables and added extra steps unnecessarily.  
+- Added new LLM nodes for:  
+  - Subquestion Generation — breaks a user query into smaller, clear subquestions.  
+  - Subquestion → Table Mapping — links each subquestion to the correct table.  
+  - Column Selection — picks only the columns needed for each subquestion, with explanations and sample values.  
+- Simplified and standardized all prompts:  
+  - Clear structure for system and human messages.  
+  - Defined input/output format using strict JSON. 
+  
+---
+
 ## [v4.1] - 2025-10-08
 ### Added
 
