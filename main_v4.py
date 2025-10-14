@@ -96,6 +96,7 @@ def router_agent(state: SQLState) -> SQLState:
     response = router_chain.invoke({
         "table_descriptions": json.dumps(table_descriptions),
         "question": state["user_query"]
+        
     })
 
     # Parse the JSON array of selected table names
@@ -147,7 +148,7 @@ workflow = graph.compile()
 
 # Test the workflow
 
-user_query = "Which sellers have sold products in more than 3 different categories?"
+user_query = "For each state, show the number of orders, average review score, and total payment."
 
 # Initial state
 test_state: SQLState = {
