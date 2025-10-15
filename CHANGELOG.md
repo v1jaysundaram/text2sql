@@ -8,12 +8,6 @@ This project follows a simple versioning approach (v1, v2, ...).
 ## [v5] - 2025-10-14
 
 ### Changed
-## [v5] - 2025-10-14
-
-### Changed
-## [v5] - 2025-10-14
-
-### Changed
 
 - Removed the Table Router Agent because it was not always picking the right tables and added extra steps unnecessarily.  
 - Added new LLM nodes for:  

@@ -493,7 +493,7 @@ workflow = graph.compile()
 
 # Test the workflow
 
-user_query = "List customers who made more than 5 orders and their average review. Also, list the number of orders of each customer."
+user_query = "For each state, show the number of orders, average review score, and total payment."
 
 initial_state: SQLState = {
     "user_query": user_query,
