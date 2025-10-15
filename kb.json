@@ -1,21 +1,21 @@
 {
     "olist_customers_dataset": [
-        "Table represents customer information (includes customer_id, customer_unique_id, customer_zip_code_prefix, customer_city, customer_state)",
+        "Table represents customer information and location (includes customer_id, customer_unique_id, customer_zip_code_prefix, customer_city, customer_state)",
         [
             [
-                "customer_id: Unique identifier for each customer, data type: VARCHAR, sample values: fad7d23c35cc53861ea7005b27cbeebf, 246ddb2dd49eae53ce1695190d61fc24"
+                "customer_id: Represents the unique identifier for each customer, datatype: VARCHAR, sample values: 94b975689c61872e24c36749bd542447, 386124a646dba2aaea281faab04634f9"
             ],
             [
-                "customer_unique_id: Unique identifier for each customer, different from customer_id, data type: VARCHAR, sample values: 87b17699dbb8c555f40463875ccaea8d, 6a1bd3531227937b0bf249d29fbf9901"
+                "customer_unique_id: Represents the unique identifier for each customer across orders, datatype: VARCHAR, sample values: bca18b5eeb716073cf391ceb2dacd6d2, b77e44fcd284241c32aec8dc63e392cc"
             ],
             [
-                "customer_zip_code_prefix: The zip code prefix of the customer's location, data type: INTEGER, sample values: 49035, 96540"
+                "customer_zip_code_prefix: Represents the zip code prefix of the customer's location, datatype: INT, sample values: 29024, 32260"
             ],
             [
-                "customer_city: The city where the customer is located, data type: VARCHAR, sample values: aracaju, agudo"
+                "customer_city: Represents the city where the customer is located, datatype: VARCHAR, sample values: vitoria, contagem"
             ],
             [
-                "customer_state: The state where the customer is located, data type: VARCHAR, sample values: SE, RS"
+                "customer_state: Represents the state where the customer is located, datatype: VARCHAR, sample values: ES, MG"
             ]
         ]
     ],
@@ -23,45 +23,45 @@
         "Table represents Brazilian zip codes and its lat/lng coordinates (includes geolocation_zip_code_prefix, geolocation_lat, geolocation_lng, geolocation_city, geolocation_state)",
         [
             [
-                "geolocation_zip_code_prefix: Integer, sample values: 4340, 71693"
+                "geolocation_zip_code_prefix: Represents the zip code prefix of Brazilian locations, datatype: integer, sample values: 86046, 32370"
             ],
             [
-                "geolocation_lat: Float, sample values: -23.668608583126534, -15.912360000000003"
+                "geolocation_lat: Represents the latitude coordinates of Brazilian locations, datatype: float, sample values: -23.34033425313053, -19.93387097305251"
             ],
             [
-                "geolocation_lng: Float, sample values: -46.63762116180968, -47.76361874999999"
+                "geolocation_lng: Represents the longitude coordinates of Brazilian locations, datatype: float, sample values: -51.14403909813019, -44.02634715518152"
             ],
             [
-                "geolocation_city: String, sample values: sao paulo, sao sebastiao"
+                "geolocation_city: Represents the city name corresponding to the zip code, datatype: string, sample values: 'londrina', 'contagem'"
             ],
             [
-                "geolocation_state: String, sample values: SP, DF"
+                "geolocation_state: Represents the state abbreviation for the Brazilian location, datatype: string, sample values: 'PR', 'MG'"
             ]
         ]
     ],
     "olist_order_items_dataset": [
-        "Table represents items purchased within each order (includes order_id, order_item_id, product_id, seller_id, shipping_limit_date, price, freight_value)",
+        "Table represents data about the items purchased within each order (includes order_id, order_item_id, product_id, seller_id, shipping_limit_date, price, freight_value)",
         [
             [
-                "order_id: unique identifier for each order, data type: TEXT, sample values: '86c1a3ab2128e2448cecac7f29c5d48a', 'c4d2f075fc3bf3a06d1e68e113c35cbd'"
+                "order_id: alphanumeric identifier for each order, TEXT, sample values: '290fd15a601791489cc89d22dd315800', '615ae1b88a25a4ac47fbf55c9c847b6e'"
             ],
             [
-                "order_item_id: identifier for each item in the order, data type: INTEGER, sample values: 1, 1"
+                "order_item_id: identifier for each item within an order, INTEGER, sample values: 1, 2"
             ],
             [
-                "product_id: unique identifier for each product, data type: TEXT, sample values: 'aa995bbfcf2da055bed670f7282f90d8', '57e089e3103f5cda6a4ce23b77399bdb'"
+                "product_id: identifier for each product, TEXT, sample values: '276e9ed23a30582d125743aaed57ed22', 'fa304c5424fd292aed9c35eb36d9f495'"
             ],
             [
-                "seller_id: unique identifier for each seller, data type: TEXT, sample values: '7a67c85e85bb2ce8582c35f2203ad736', 'aafe36600ce604f205b86b5084d3d767'"
+                "seller_id: identifier for each seller, TEXT, sample values: '52f0fe436a347ddad7ed5f9aa4e27eaa', '609e1a9a6c2539919b8205cf7c4e6ff0'"
             ],
             [
-                "shipping_limit_date: timestamp for the shipping deadline, data type: TEXT, sample values: '2017-05-30 03:05:31', '2018-08-06 15:10:14'"
+                "shipping_limit_date: deadline for shipping the order, TEXT, sample values: '2018-03-19 18:15:36', '2018-08-14 13:55:18'"
             ],
             [
-                "price: price of the item, data type: FLOAT, sample values: 57.99, 54.9"
+                "price: price of the item, FLOAT, sample values: 20.9, 64.99"
             ],
             [
-                "freight_value: shipping cost of the item, data type: FLOAT, sample values: 16.66, 24.73"
+                "freight_value: cost of shipping, FLOAT, sample values: 22.85, 19.65"
             ]
         ]
     ],
@@ -69,19 +69,19 @@
         "Table represents orders payment options (includes order_id, payment_sequential, payment_type, payment_installments, payment_value)",
         [
             [
-                "order_id: Unique identifier for each order, datatype: VARCHAR, sample values: '9c9d443e386dc6332b14958d37eaf75b', '4db12ae1b5826c465cb48c30426fe425'"
+                "order_id: Represents the unique identifier for each order, datatype: string, sample values: 'd2af9f29f103214f951dfb33055b8bd6', '78eda8cdf7d5a0f8b22ad393f0139981'"
             ],
             [
-                "payment_sequential: Sequential number for each payment within an order, datatype: INTEGER, sample values: 1, 1"
+                "payment_sequential: Represents the sequence of payment for each order, datatype: integer, sample values: 1, 1"
             ],
             [
-                "payment_type: Type of payment for the order, datatype: VARCHAR, sample values: 'credit_card', 'voucher'"
+                "payment_type: Represents the type of payment used, datatype: string, sample values: 'credit_card', 'boleto'"
             ],
             [
-                "payment_installments: Number of installments for the payment, datatype: INTEGER, sample values: 2, 1"
+                "payment_installments: Represents the number of installments for the payment, datatype: integer, sample values: 1, 1"
             ],
             [
-                "payment_value: Amount paid for the order, datatype: FLOAT, sample values: 172.17, 298.81"
+                "payment_value: Represents the payment amount, datatype: float, sample values: 87.97, 129.49"
             ]
         ]
     ],
@@ -89,54 +89,54 @@
         "Table represents reviews made by customers after purchase (includes review_id, order_id, review_score, review_comment_title, review_comment_message, review_creation_date, review_answer_timestamp)",
         [
             [
-                "review_id: alphanumeric identifier for each review, TEXT, sample values: '5cc99731674c4b5f4907c90be6906d68', '3338566cbe27d9977dc215eb193147e6'"
+                "review_id: Unique identifier for each review, data type: VARCHAR, sample values: '06de6ba90c81c318f9f08196c369ded5', '3d7cb5e1cade7478b7591b7821b91fa4'"
             ],
             [
-                "order_id: unique identifier for each order related to the review, TEXT, sample values: '499e36ddc9a7c36dd44e2dcd43a76620', '77e3266e92eda8a0570ce5b1045fa3b5'"
+                "order_id: Unique identifier for each order, data type: VARCHAR, sample values: '8465a1ae25d801a0c2d8dbfeb425a6f6', '5c046e4039e459e61961dce13fdf1d7b'"
             ],
             [
-                "review_score: numerical rating given by the customer, INTEGER, sample values: 5, 2"
+                "review_score: The score given by the customer for the review, data type: INTEGER, sample values: 2, 5"
             ],
             [
-                "review_comment_title: title of the review comment, TEXT, sample values: 'Beleza e funcionalidade', 'Aprovado.'"
+                "review_comment_title: Title of the comment provided by the customer, data type: VARCHAR, sample values: None"
             ],
             [
-                "review_comment_message: detailed message of the review, TEXT, sample values: 'Almofada simples, bonita e bastante funcional. Gostei!', 'A entrega foi rápida, antes do prazo previsto.\r\nO produto corresponde às minhas expectativas até o momento. Está em uso há 4 dias.'"
+                "review_comment_message: Detailed comment provided by the customer, data type: VARCHAR, sample values: 'Entrega em atraso', 'Comprei o produto e o mesmo chegou muito antes...'"
             ],
             [
-                "review_creation_date: date and time when the review was created, TEXT, sample values: '2018-08-21 00:00:00', '2018-08-11 00:00:00'"
+                "review_creation_date: Date when the review was created, data type: DATETIME, sample values: '2018-03-23 00:00:00', '2017-11-01 00:00:00'"
             ],
             [
-                "review_answer_timestamp: timestamp for when the review was answered, TEXT, sample values: '2018-08-22 11:55:10', '2018-08-12 14:00:41'"
+                "review_answer_timestamp: Timestamp of when the review was answered, data type: DATETIME, sample values: '2018-03-25 11:41:48', '2017-11-02 03:29:19'"
             ]
         ]
     ],
     "olist_orders_dataset": [
-        "Table represents order details including order_id, customer_id, order_status, order_purchase_timestamp, order_approved_at, order_delivered_carrier_date, order_delivered_customer_date, order_estimated_delivery_date",
+        "Table represents core dataset containing order-level details linking all other datasets (includes order_id, customer_id, order_status, order_purchase_timestamp, order_approved_at, order_delivered_carrier_date, order_delivered_customer_date, order_estimated_delivery_date)",
         [
             [
-                "order_id: Unique identifier for each order, data type: string, sample values: '8ffd24fbf822586b2712a4becc7217dc', 'dd13617f642718bd4cdc450d197960f9'"
+                "order_id: unique identifier for each order, data type: VARCHAR, sample values: '00042b26cf59d7ce69dfabb4e55b4fd9', '6660735419b67a222968c81cd4e3fc9b'"
             ],
             [
-                "customer_id: Identifier for each customer, data type: string, sample values: '2f9e8eaed5dc638e5b884a9a37268fca', '88cfdf24cd7c7e09f64d5673857f7ca7'"
+                "customer_id: unique identifier for each customer, data type: VARCHAR, sample values: '58dbd0b2d70206bf40e62cd34e84d795', '986666beea9f9971afa44b4bcf1df7cc'"
             ],
             [
-                "order_status: Status of the order, data type: string, sample values: 'delivered', 'delivered'"
+                "order_status: status of the order, data type: VARCHAR, sample values: 'delivered', 'delivered'"
             ],
             [
-                "order_purchase_timestamp: Timestamp when the order was purchased, data type: string, sample values: '2017-01-29 00:31:42', '2017-03-17 20:28:33'"
+                "order_purchase_timestamp: timestamp when the order was made, data type: VARCHAR, sample values: '2017-02-04 13:57:51', '2017-10-16 11:28:49'"
             ],
             [
-                "order_approved_at: Timestamp when the order was approved, data type: string, sample values: '2017-01-29 01:32:22', '2017-03-17 20:28:33'"
+                "order_approved_at: timestamp when the order was approved, data type: VARCHAR, sample values: '2017-02-04 14:10:13', '2017-10-16 11:49:29'"
             ],
             [
-                "order_delivered_carrier_date: Timestamp when the order was handed to the carrier, data type: string, sample values: '2017-01-30 09:11:53', '2017-03-22 09:48:04'"
+                "order_delivered_carrier_date: timestamp when the order was delivered to the carrier, data type: VARCHAR, sample values: '2017-02-16 09:46:09', '2017-10-16 19:42:26'"
             ],
             [
-                "order_delivered_customer_date: Timestamp when the order was delivered to the customer, data type: string, sample values: '2017-02-07 10:34:04', '2017-04-17 15:44:48'"
+                "order_delivered_customer_date: timestamp when the order was delivered to the customer, data type: VARCHAR, sample values: '2017-03-01 16:42:31', '2017-10-20 16:23:53'"
             ],
             [
-                "order_estimated_delivery_date: Estimated delivery date of the order, data type: string, sample values: '2017-03-20 00:00:00', '2017-04-26 00:00:00'"
+                "order_estimated_delivery_date: estimated delivery date for the order, data type: VARCHAR, sample values: '2017-03-17 00:00:00', '2017-11-06 00:00:00'"
             ]
         ]
     ],
@@ -144,59 +144,59 @@
         "Table represents products sold by Olist (includes product_id, product_category_name, product_name_lenght, product_description_lenght, product_photos_qty, product_weight_g, product_length_cm, product_height_cm, product_width_cm)",
         [
             [
-                "product_id: unique identifier for each product, string, sample values: 'a669398f595527fc03acc1ebda6b3cce', '19629b1460e380638d4b9263bd31547a'"
+                "product_id: unique identifier for each product, TEXT, sample values: 'e67307ff0f15ade43fcb6e670be7a74c', '081476f0ad46b45e23bbd0f3d1d4dd98'"
             ],
             [
-                "product_category_name: category name of the product, string, sample values: 'beleza_saude', 'eletronicos'"
+                "product_category_name: category name of the product, TEXT, sample values: 'beleza_saude', 'utilidades_domesticas'"
             ],
             [
-                "product_name_lenght: length of the product name, float, sample values: 58.0, 52.0"
+                "product_name_lenght: length of the product name in characters, FLOAT, sample values: 47.0, 43.0"
             ],
             [
-                "product_description_lenght: length of the product description, float, sample values: 905.0, 1681.0"
+                "product_description_lenght: length of the product description in characters, FLOAT, sample values: 1474.0, 554.0"
             ],
             [
-                "product_photos_qty: number of photos related to the product, float, sample values: 2.0, 1.0"
+                "product_photos_qty: quantity of photos associated with the product, FLOAT, sample values: 3.0, 2.0"
             ],
             [
-                "product_weight_g: weight of the product in grams, float, sample values: 300.0, 10900.0"
+                "product_weight_g: weight of the product in grams, FLOAT, sample values: 150.0, 175.0"
             ],
             [
-                "product_length_cm: length of the product in centimeters, float, sample values: 20.0, 75.0"
+                "product_length_cm: length of the product in centimeters, FLOAT, sample values: 43.0, 16.0"
             ],
             [
-                "product_height_cm: height of the product in centimeters, float, sample values: 10.0, 18.0"
+                "product_height_cm: height of the product in centimeters, FLOAT, sample values: 13.0, 12.0"
             ],
             [
-                "product_width_cm: width of the product in centimeters, float, sample values: 15.0, 70.0"
+                "product_width_cm: width of the product in centimeters, FLOAT, sample values: 14.0, 12.0"
             ]
         ]
     ],
     "olist_sellers_dataset": [
-        "Table represents sellers fulfilling orders at Olist (includes seller_id, seller_zip_code_prefix, seller_city, seller_state)",
+        "Table represents Sellers (includes seller_id, seller_zip_code_prefix, seller_city, seller_state)",
         [
             [
-                "seller_id: Unique identifier for each seller, data type: VARCHAR, sample values: '88460e8ebdecbfecb5f9601833981930', '404e1ba01358af4cd63f679b2c4d1fa1'"
+                "seller_id: unique identifier for each seller, TEXT, sample values: '5d043cd5512d4bd2f88e5ccdd5736c38', 'd20b021d3efdf267a402c402a48ea64b'"
             ],
             [
-                "seller_zip_code_prefix: The zip code prefix of the seller's location, data type: INTEGER, sample values: 87030, 36032"
+                "seller_zip_code_prefix: the first digits of the seller's zip code, INTEGER, sample values: 2710, 14940"
             ],
             [
-                "seller_city: The city where the seller is located, data type: VARCHAR, sample values: 'maringa', 'juiz de fora'"
+                "seller_city: the city where the seller is located, TEXT, sample values: 'sao paulo', 'ibitinga'"
             ],
             [
-                "seller_state: The state where the seller is located, data type: VARCHAR, sample values: 'PR', 'MG'"
+                "seller_state: the state where the seller is located, TEXT, sample values: 'SP', 'PR'"
             ]
         ]
     ],
     "product_category_name_translation": [
-        "Table represents the translation of product_category_name to English (includes product_category_name, product_category_name_english)",
+        "Table represents translating the product_category_name to English (includes product_category_name, product_category_name_english)",
         [
             [
-                "product_category_name: Represents the original product category name in Portuguese, data type: string, sample values: sinalizacao_e_seguranca, eletrodomesticos_2"
+                "product_category_name: Represents the original product category name, datatype: VARCHAR, sample values: informatica_acessorios, cds_dvds_musicais"
             ],
             [
-                "product_category_name_english: Represents the translated product category name in English, data type: string, sample values: signaling_and_security, home_appliances_2"
+                "product_category_name_english: Represents the translated product category name to English, datatype: VARCHAR, sample values: computers_accessories, cds_dvds_musicals"
             ]
         ]
     ]
