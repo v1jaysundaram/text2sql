@@ -153,13 +153,6 @@ Focus solely on reasoning which table best fits each sub-question based on table
 ### Task
 For each sub-question, select the **single table** from the provided knowledge base that best contains the necessary information.
 
-Rules:
-1. Only select tables that directly contain or describe data relevant to the sub-question.
-2. If multiple sub-questions map to the same table, group them into a single array entry.
-3. If no table clearly matches a sub-question, **ignore that sub-question**.
-4. Do **not** invent or hallucinate tables.
-5. Use table names exactly as they appear in the KB.
----
 
 Guidelines:
 1. Only select tables that directly contain or describe data relevant to the sub-question.
@@ -493,7 +486,7 @@ workflow = graph.compile()
 
 # Test the workflow
 
-user_query = "For each state, show the number of orders, average review score, and total payment."
+user_query = "What is the correlation between payment value and review score?"
 
 initial_state: SQLState = {
     "user_query": user_query,
