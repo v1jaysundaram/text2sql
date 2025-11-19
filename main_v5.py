@@ -484,7 +484,7 @@ graph.add_edge("sql_gen", END)
 workflow = graph.compile()
 
 
-# Test the workflow
+"""# Test the workflow
 
 user_query = "What is the correlation between payment value and review score?"
 
@@ -501,4 +501,26 @@ initial_state: SQLState = {
 # Run the workflow
 final_state = workflow.invoke(initial_state)
 
-print(final_state["sql_query"])
+print(final_state["sql_query"])"""
+
+
+def run_text2sql(question: str) -> dict:
+    """
+    Executes the full Text-to-SQL pipeline and returns the final SQL query.
+    """
+
+
+    initial_state: SQLState = {
+        "user_query": question,
+        "sql_query": "",
+        "selected_tables": [],
+        "filtered_kb": {},          
+        "subquestions": [],
+        "table_mappings": [],
+        "column_selections": []
+    }
+
+    response = workflow.invoke(initial_state)
+
+    return {"answer": response["sql_query"]}
+

@@ -34,7 +34,7 @@ FROM olist_orders_dataset o
 LEFT JOIN olist_order_reviews_dataset r ON o.order_id = r.order_id
 LEFT JOIN olist_order_payments_dataset p ON o.order_id = p.order_id;
 "
-8,multi_table_join,"List customers, their orders, and any review comments they’ve left.","SELECT 
+8,multi_table_join,"List customers, their orders, and any review comments they?ve left.","SELECT 
     c.customer_id,
     o.order_id,
     r.review_comment_title,
@@ -48,12 +48,9 @@ LEFT JOIN olist_order_reviews_dataset r ON o.order_id = r.order_id;"
 FROM olist_sellers_dataset s
 JOIN olist_order_items_dataset oi ON s.seller_id = oi.seller_id
 GROUP BY s.seller_id;"
-10,aggregation,"For each product, show the total quantity sold.","SELECT 
-    s.seller_id,
-    SUM(oi.freight_value) AS total_freight
-FROM olist_sellers_dataset s
-JOIN olist_order_items_dataset oi ON s.seller_id = oi.seller_id
-GROUP BY s.seller_id;"
+10,aggregation,"For each product, show the total quantity sold.","SELECT oi.product_id, SUM(oi.price) AS total_quantity_sold
+FROM olist_order_items_dataset oi
+GROUP BY oi.product_id;"
 11,aggregation_with_filter,Which customers have placed more than 1 order?,"SELECT 
     o.customer_id,
     COUNT(o.order_id) AS total_orders
