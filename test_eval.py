@@ -20,8 +20,8 @@ def run_langsmith_eval():
         run_text2sql,
         data=dataset_name,
         #data=client.list_examples(dataset_name=dataset_name, splits=["quick_test"]), # We pass in a list of Splits
-        experiment_prefix="text2sql-test",
-        num_repetitions=1, # This field defaults to 1
+        experiment_prefix="text2sql-test-3",
+        num_repetitions=2, # This field defaults to 1
         max_concurrency=2 # This defaults to None
     )
 
