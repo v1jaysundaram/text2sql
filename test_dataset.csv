@@ -23,7 +23,7 @@ WHERE seller_state = 'SP';
 "
 5,simple_join,Tell me the state of the customer for every order.,"SELECT o.order_id, c.customer_state
 FROM olist_orders_dataset o
-JOIN olist_customers_dataset c ON o.customer_id = c.customer_id;
+LEFT JOIN olist_customers_dataset c ON o.customer_id = c.customer_id;
 "
 6,simple_join,Show me all orders that do not have a review.,"SELECT o.order_id
 FROM olist_orders_dataset o
@@ -46,7 +46,7 @@ LEFT JOIN olist_order_reviews_dataset r ON o.order_id = r.order_id;"
     s.seller_id,
     SUM(oi.freight_value) AS total_freight
 FROM olist_sellers_dataset s
-JOIN olist_order_items_dataset oi ON s.seller_id = oi.seller_id
+LEFT JOIN olist_order_items_dataset oi ON s.seller_id = oi.seller_id
 GROUP BY s.seller_id;"
 10,aggregation,"For each product, show the total quantity sold.","SELECT oi.product_id, SUM(oi.price) AS total_quantity_sold
 FROM olist_order_items_dataset oi
@@ -70,7 +70,7 @@ HAVING COUNT(oi.order_item_id) >= 15;"
     AVG(r.review_score) AS avg_review_score,
     SUM(p.payment_value) AS total_payment
 FROM olist_orders_dataset o
-JOIN olist_customers_dataset c
+LEFT JOIN olist_customers_dataset c
     ON o.customer_id = c.customer_id
 LEFT JOIN olist_order_reviews_dataset r
     ON o.order_id = r.order_id
@@ -107,7 +107,7 @@ ORDER BY order_id;
             ORDER BY COUNT(*) DESC
         ) AS rn
     FROM olist_order_items_dataset oi
-    JOIN olist_products_dataset p
+    LEFT JOIN olist_products_dataset p
         ON oi.product_id = p.product_id
     GROUP BY
         p.product_category_name,
