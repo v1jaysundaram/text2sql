@@ -68,10 +68,10 @@ LEFT JOIN olist_order_payments_dataset p
 GROUP BY c.customer_state
 ORDER BY c.customer_state;
 "
-15,complex_logic,Show the delivery delay for every order based on estimated vs actual delivery.,"SELECT ord.order_id, 
+14,complex_logic,Show the delivery delay for every order based on estimated vs actual delivery.,"SELECT ord.order_id, 
        TIMESTAMPDIFF(DAY, ord.order_estimated_delivery_date, ord.order_delivered_customer_date) AS delivery_delay
 FROM olist_orders_dataset ord;"
-16,complex_logic,Show the top 3 products within each category by sales,"WITH cs AS (
+15,complex_logic,Show the top 3 products within each category by sales,"WITH cs AS (
     SELECT 
         pro.product_category_name category,
         pro.product_id product,
@@ -90,7 +90,7 @@ FROM cs
 WHERE rnk <= 3
 ORDER BY category, total_sales DESC;
 "
-17,complex_logic,"For each seller, calculate the running total of items sold","SELECT 
+16,complex_logic,"For each seller, calculate the running total of items sold","SELECT 
     oi.seller_id seller,
     oi.order_id order_,
     oi.order_item_id item,
