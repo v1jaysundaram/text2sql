@@ -1,19 +1,12 @@
 ID,category,question,ground_truth
-1,basic_retrieval,Show me all customers and where they live.,"SELECT 
-    customer_id,
-    customer_city,
-    customer_state
-FROM olist_customers_dataset;"
-2,basic_retrieval,Give me the list of all orders and when they were placed.,"SELECT 
-    order_id,
-    order_purchase_timestamp
-FROM olist_orders_dataset;
-"
-3,simple_filter,"Show me orders that were delivered after January 1st, 2018.","SELECT
-    order_id,
-    order_delivered_customer_date
+1,basic_retrieval,Show me all customers and where they live.,"SELECT cst.customer_id, cst.customer_city, cst.customer_state FROM olist_customers_dataset cst;"
+2,basic_retrieval,Give me the list of all orders and when they were placed.,"SELECT order_id, order_purchase_timestamp
 FROM olist_orders_dataset
-WHERE order_delivered_customer_date > '2018-01-01';
+ORDER BY order_purchase_timestamp;"
+3,simple_filter,"Show me orders that were delivered after January 1st, 2018.","SELECT * 
+FROM olist_orders_dataset
+WHERE order_delivered_customer_date > '2018-01-01'
+ORDER BY order_delivered_customer_date;
 "
 4,simple_filter,List all sellers located in the state of Sao Paulo.,"SELECT
     seller_id,
@@ -21,10 +14,9 @@ WHERE order_delivered_customer_date > '2018-01-01';
 FROM olist_sellers_dataset
 WHERE seller_state = 'SP';
 "
-5,simple_join,Tell me the state of the customer for every order.,"SELECT o.order_id, c.customer_state
-FROM olist_orders_dataset o
-LEFT JOIN olist_customers_dataset c ON o.customer_id = c.customer_id;
-"
+5,simple_join,Tell me the state of the customer for every order.,"SELECT ord.order_id, cst.customer_state
+FROM olist_orders_dataset ord
+LEFT JOIN olist_customers_dataset cst ON ord.customer_id = cst.customer_id;"
 6,simple_join,Show me all orders that do not have a review.,"SELECT o.order_id
 FROM olist_orders_dataset o
 LEFT JOIN olist_order_reviews_dataset r ON o.order_id = r.order_id
@@ -42,15 +34,12 @@ LEFT JOIN olist_order_payments_dataset p ON o.order_id = p.order_id;
 FROM olist_customers_dataset c
 LEFT JOIN olist_orders_dataset o ON c.customer_id = o.customer_id
 LEFT JOIN olist_order_reviews_dataset r ON o.order_id = r.order_id;"
-9,aggregation,Show the total freight charged by each seller.,"SELECT 
-    s.seller_id,
-    SUM(oi.freight_value) AS total_freight
-FROM olist_sellers_dataset s
-LEFT JOIN olist_order_items_dataset oi ON s.seller_id = oi.seller_id
-GROUP BY s.seller_id;"
-10,aggregation,"For each product, show the total quantity sold.","SELECT oi.product_id, SUM(oi.price) AS total_quantity_sold
+9,aggregation,Show the total freight charged by each seller.,"SELECT oi.seller_id, SUM(oi.freight_value) AS total_freight_charged
 FROM olist_order_items_dataset oi
-GROUP BY oi.product_id;"
+GROUP BY oi.seller_id;"
+10,aggregation,"For each product, show the total quantity sold.","SELECT ooi.product_id, SUM(ooi.order_item_id) AS total_quantity_sold
+FROM olist_order_items_dataset ooi
+GROUP BY ooi.product_id;"
 11,aggregation_with_filter,Which customers have placed more than 1 order?,"SELECT 
     o.customer_id,
     COUNT(o.order_id) AS total_orders
@@ -79,75 +68,38 @@ LEFT JOIN olist_order_payments_dataset p
 GROUP BY c.customer_state
 ORDER BY c.customer_state;
 "
-14,complex_logic,What is the monthly trend of total sales?,"SELECT
-    DATE_FORMAT(o.order_purchase_timestamp, '%m') AS month,
-    SUM(p.payment_value) AS total_sales
-FROM olist_orders_dataset o
-LEFT JOIN olist_order_payments_dataset p
-    ON o.order_id = p.order_id
-GROUP BY DATE_FORMAT(o.order_purchase_timestamp, '%m')
-ORDER BY month;
-"
-15,complex_logic,Show the delivery delay for every order based on estimated vs actual delivery.,"SELECT
-    order_id,
-    order_estimated_delivery_date,
-    order_delivered_customer_date,
-    DATEDIFF(order_delivered_customer_date, order_estimated_delivery_date) AS delivery_delay_days
-FROM olist_orders_dataset
-WHERE order_delivered_customer_date IS NOT NULL
-ORDER BY order_id;
-"
-16,complex_logic,Show the top 3 products within each category by sales,"WITH product_sales AS (
-    SELECT
-        p.product_category_name,
-        oi.product_id,
-        COUNT(*) AS total_quantity_sold,
+15,complex_logic,Show the delivery delay for every order based on estimated vs actual delivery.,"SELECT ord.order_id, 
+       TIMESTAMPDIFF(DAY, ord.order_estimated_delivery_date, ord.order_delivered_customer_date) AS delivery_delay
+FROM olist_orders_dataset ord;"
+16,complex_logic,Show the top 3 products within each category by sales,"WITH cs AS (
+    SELECT 
+        pro.product_category_name category,
+        pro.product_id product,
+        SUM(oi.price) total_sales,
         ROW_NUMBER() OVER (
-            PARTITION BY p.product_category_name
-            ORDER BY COUNT(*) DESC
-        ) AS rn
+            PARTITION BY pro.product_category_name
+            ORDER BY SUM(oi.price) DESC
+        ) rnk
     FROM olist_order_items_dataset oi
-    LEFT JOIN olist_products_dataset p
-        ON oi.product_id = p.product_id
-    GROUP BY
-        p.product_category_name,
-        oi.product_id
+    JOIN olist_products_dataset pro
+        ON oi.product_id = pro.product_id
+    GROUP BY pro.product_category_name, pro.product_id
 )
-SELECT
-    product_category_name,
-    product_id,
-    total_quantity_sold
-FROM product_sales
-WHERE rn <= 3
-ORDER BY product_category_name, total_quantity_sold DESC;
+SELECT category, product, total_sales
+FROM cs
+WHERE rnk <= 3
+ORDER BY category, total_sales DESC;
 "
-17,complex_logic,"For each seller, calculate the running total of items sold","WITH seller_sales AS (
-    SELECT
-        seller_id,
-        order_id,
-        COUNT(*) AS quantity_in_order
-    FROM olist_order_items_dataset
-    GROUP BY
-        seller_id,
-        order_id
-),
-running_totals AS (
-    SELECT
-        seller_id,
-        order_id,
-        quantity_in_order,
-        SUM(quantity_in_order) OVER (
-            PARTITION BY seller_id
-            ORDER BY order_id
-            ROWS UNBOUNDED PRECEDING
-        ) AS running_total_quantity
-    FROM seller_sales
-)
-SELECT
-    seller_id,
-    order_id,
-    quantity_in_order,
-    running_total_quantity
-FROM running_totals
-ORDER BY seller_id, order_id;
-"
+17,complex_logic,"For each seller, calculate the running total of items sold","SELECT 
+    oi.seller_id seller,
+    oi.order_id order_,
+    oi.order_item_id item,
+    ord.order_purchase_timestamp ts,
+    SUM(1) OVER (
+        PARTITION BY oi.seller_id
+        ORDER BY ord.order_purchase_timestamp, oi.order_id, oi.order_item_id
+    ) running_total
+FROM olist_order_items_dataset oi
+JOIN olist_orders_dataset ord
+    ON oi.order_id = ord.order_id
+ORDER BY seller, ts, order_, item;"

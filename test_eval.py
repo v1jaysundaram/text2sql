@@ -3,7 +3,7 @@
 from langsmith import Client, evaluate
 
 # Import your wrapper function from your main workflow file
-from main_v5 import run_text2sql
+from main_v6 import run_text2sql
 
 
 def run_langsmith_eval():
@@ -19,7 +19,7 @@ def run_langsmith_eval():
     evaluate(
         run_text2sql,
         data=dataset_name,
-        #data=client.list_examples(dataset_name=dataset_name, splits=["quick_test"]), # We pass in a list of Splits
+        #data=client.list_examples(dataset_name=dataset_name, splits=["golden_set"]), # quick_test, golden_set, base
         experiment_prefix="text2sql-test-3",
         num_repetitions=2, # This field defaults to 1
         max_concurrency=2 # This defaults to None
