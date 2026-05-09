@@ -1,22 +1,24 @@
-# Python
+# ============================================================
+# text2sql — Git Ignore Rules
+# ============================================================
+
+# --- Python ---
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Virtual env
-.env
+# --- Virtual Environment ---
+venv/
 .venv/
+
+# --- Secrets & Environment ---
+.env
 *.env
 
-# VSCode
+# --- Editor ---
 .vscode/
 
-# Other
-.DS_Store
-
-# Claude Code internal
+# --- Claude Code ---
 .claude/
 
-# Local planning & notes
-nextsteps.md
