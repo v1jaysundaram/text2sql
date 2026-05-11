@@ -4,6 +4,35 @@ All notable changes to this project are documented in this file.
 This project follows a simple versioning approach (v1, v2, ...).
 
 ---
+## [v2.0] - 2026-05-11
+
+### Added
+
+- Introduce `semantic/` directory with one YAML file per table containing description, business context, column metadata, join paths, and metrics — replaces `kb.json` as the schema knowledge base.
+
+- Add `semantic_builder.py` to automate YAML generation: introspects live DB schema via `INFORMATION_SCHEMA`, samples column values, and calls GPT-4o once per table to produce structured YAML files.
+
+- Add `--validate`, `--drift-check`, and `--sync` flags to `semantic_builder.py` for ongoing maintenance: validate YAML structure, detect schema changes in the live DB, and patch existing YAMLs without overwriting manual edits.
+
+- Add `semantic_embedder.py` to index YAML frontmatter (description + business_context) into a local ChromaDB vector store using `text-embedding-3-small` embeddings.
+
+- Add `main.py` as the new pipeline entry point: embeds the user question, retrieves top-K relevant table YAMLs via cosine similarity search, and calls the LLM with full YAML context to generate SQL — replacing the 5-node LangGraph workflow.
+
+### Changed
+
+- Replace `kb.json` flat knowledge base with per-table YAML files that include join paths and business-level metrics, enabling richer and more accurate SQL generation context.
+
+- Replace LLM-based table mapping and column selection nodes (Nodes 2 and 3 in v6) with embedding-based retrieval, reducing token usage by ~40%.
+
+### Removed
+
+- `kb.json` and `kb_builder.py` — superseded by the YAML semantic layer and `semantic_builder.py`.
+
+### Archived
+
+- All v1.0 series files moved to `archive/`: `main_v1.py` through `main_v6.py`, `schema_v1.txt`, `schema_v2.py`, `kb.json`, `kb_builder.py`, `db.py`, `csv_loader.py`, `test_eval.ipynb`, `test_db.ipynb` — retained for reference, no longer part of the active codebase.
+
+---
 ## [v6] - 2025-11-23
 
 ### Added
