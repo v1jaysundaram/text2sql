@@ -22,3 +22,10 @@ venv/
 # --- Claude Code ---
 .claude/
 
+# --- Local planning & notes ---
+nextsteps.md
+immediatenextsteps.md
+
+# --- Semantic builder user input ---
+table_purposes.yaml
+

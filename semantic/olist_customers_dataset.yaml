@@ -1,0 +1,68 @@
+version: 1
+
+table: olist_customers_dataset
+description: >
+  Customer master table providing location details such as city, state, and zip code,
+  along with a stable customer_unique_id to de-duplicate buyers across multiple orders.
+  One row represents one unique customer.
+business_context: >
+  Use this table to analyze customer demographics and geographic distribution.
+  It is essential for de-duplicating customers across orders and can be joined with
+  order tables to enrich order data with customer location information.
+
+# Columns
+columns:
+
+
+  - name: customer_unique_id
+    type: VARCHAR
+    description: Stable identifier for de-duplicating customers across multiple orders.
+    sample_values:
+      - "4f1a8d703d88162a87bf13b50ef9c75f"
+      - "8c20a65d2f777cfc7a1776cb53c8b5a3"
+
+  - name: customer_zip_code_prefix
+    type: INT
+    description: Prefix of the customer's zip code.
+    sample_values:
+      - "78678"
+      - "58860"
+
+  - name: customer_city
+    type: VARCHAR
+    description: City where the customer is located.
+    sample_values:
+      - "patrocinio paulista"
+      - "nova cruz"
+
+  - name: customer_id
+    type: VARCHAR
+    description: The "customer_id" column represents a unique identifier assigned to each customer in the dataset.
+    sample_values:
+      - "173f7dfbe0aae1fb98e9d5d4debfbe0d"
+      - "d9b26a5ba9f3034d33903344390460b9"
+
+  - name: customer_state
+    type: VARCHAR
+    description: The "customer_state" column represents the abbreviation of the Brazilian state where the customer resides.
+    sample_values:
+      - "AL"
+      - "RS"
+  
+# Joins
+joins:
+  - to: olist_orders_dataset
+    type: LEFT
+    condition: "olist_customers_dataset.customer_id = olist_orders_dataset.customer_id"
+    cardinality: one_to_many
+
+  - to: olist_geolocation_dataset
+    type: LEFT
+    condition: "olist_customers_dataset.customer_zip_code_prefix = olist_geolocation_dataset.geolocation_zip_code_prefix"
+    cardinality: many_to_one
+
+# Metrics
+metrics:
+  - name: unique_customers_count
+    description: Total number of unique customers.
+    sql: "COUNT(DISTINCT customer_unique_id)"

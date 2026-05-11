@@ -1,0 +1,75 @@
+version: 1
+
+table: olist_order_reviews_dataset
+description: >
+  Contains customer satisfaction data with review scores and comments submitted after delivery. One row represents a single review, and multiple reviews can be associated with a single order.
+business_context: >
+  Use this table to analyze customer feedback and satisfaction levels. It is useful for understanding customer sentiment and identifying areas for improvement. Commonly joined with order details to correlate reviews with specific orders.
+
+# Columns
+columns:
+  - name: review_id
+    type: VARCHAR
+    description: Unique identifier for each review.
+    sample_values:
+      - "7f556701694e0370b73d8ea29700300e"
+      - "31a8b88662e46a29a11702d560e5623c"
+
+  - name: order_id
+    type: VARCHAR
+    description: Identifier for the order associated with the review.
+    sample_values:
+      - "ef519547cb72d3ac42ff707948fdb963"
+      - "9bcee5211be4c4e8785242c9fcd22e32"
+
+  - name: review_score
+    type: INT
+    description: Score given by the customer, typically ranging from 1 to 5.
+    sample_values:
+      - "2"
+      - "5"
+
+  - name: review_comment_title
+    type: VARCHAR
+    description: Title of the review comment provided by the customer.
+    sample_values:
+      - "super confiável"
+      - "super recomendo 01092018"
+
+  - name: review_comment_message
+    type: VARCHAR
+    description: Detailed message of the review provided by the customer.
+    sample_values:
+      - "Recebi um produto da mesma marca, porém inferior ao que eu havia comprado, sem aviso algum do fornecedor."
+      - "O controle funcionou perfeitamente. Além disso, chegou antes do prazo e com nota fiscal. Recomendo!!!"
+
+  - name: review_creation_date
+    type: DATETIME
+    description: Date when the review was created by the customer.
+    sample_values:
+      - "2017-03-23 00:00:00"
+      - "2018-02-17 00:00:00"
+
+  - name: review_answer_timestamp
+    type: DATETIME
+    description: Timestamp when the review was answered or processed.
+    sample_values:
+      - "2017-03-07 14:01:10"
+      - "2018-01-20 20:46:44"
+
+# Joins
+joins:
+  - to: olist_orders_dataset
+    type: LEFT
+    condition: "olist_order_reviews_dataset.order_id = olist_orders_dataset.order_id"
+    cardinality: many_to_one
+
+# Metrics
+metrics:
+  - name: avg_review_score
+    description: Average review score across all reviews.
+    sql: "AVG(review_score)"
+
+  - name: review_count
+    description: Total number of reviews submitted.
+    sql: "COUNT(review_id)"

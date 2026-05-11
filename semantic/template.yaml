@@ -1,0 +1,34 @@
+version: 1
+
+table: <table_name>
+description: >
+  <One or two sentences. What data does this table hold? What is the grain
+  (one row = one what)?>
+business_context: >
+  <When should a query use this table? What analyses live here? Which joins are
+  common starting points? Avoid restating the description — add analyst intent.>
+
+# Columns
+columns:
+  - name: <column_name>
+    type: <VARCHAR | INT | FLOAT | DATETIME | BOOLEAN>
+    description: <What does this column represent? Include units if numeric.>
+    sample_values:
+      - "<value_1>"
+      - "<value_2>"
+
+# Joins
+# TODO: review and adjust
+# cardinality: many_to_one | one_to_many | one_to_one | many_to_many
+joins:
+  - to: <target_table_name>
+    type: <LEFT | INNER>
+    condition: "<this_table.col = target_table.col>"
+    cardinality: <many_to_one | one_to_many | one_to_one | many_to_many>
+
+# Metrics
+# TODO: review and adjust
+metrics:
+  - name: <metric_name>
+    description: <What does this metric measure? Include the denominator if a rate.>
+    sql: "<aggregate SQL expression>"

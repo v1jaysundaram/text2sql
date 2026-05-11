@@ -1,0 +1,82 @@
+version: 1
+
+table: olist_products_dataset
+description: >
+  Product catalog containing physical dimensions, photo count, and category name for each product SKU. One row represents one unique product.
+business_context: >
+  Use this table for analyses related to product attributes, such as size, weight, and category distribution. Commonly joined with sales or inventory tables to analyze product performance or stock levels.
+
+# Columns
+columns:
+  - name: product_id
+    type: VARCHAR
+    description: Unique identifier for each product.
+    sample_values:
+      - "1df4766d26ab7bcb152eaf8c600210a6"
+      - "c8a8b80300a9dfba535a8d575b01c977"
+
+  - name: product_category_name
+    type: VARCHAR
+    description: Name of the category to which the product belongs.
+    sample_values:
+      - "construcao_ferramentas_ferramentas"
+      - "moveis_cozinha_area_de_servico_jantar_e_jardim"
+
+  - name: product_name_lenght
+    type: FLOAT
+    description: Length of the product name in characters.
+    sample_values:
+      - "33.0"
+      - "61.0"
+
+  - name: product_description_lenght
+    type: FLOAT
+    description: Length of the product description in characters.
+    sample_values:
+      - "46.0"
+      - "1273.0"
+
+  - name: product_photos_qty
+    type: FLOAT
+    description: Number of photos available for the product.
+    sample_values:
+      - "20.0"
+      - "7.0"
+
+  - name: product_weight_g
+    type: FLOAT
+    description: Weight of the product in grams.
+    sample_values:
+      - "949.0"
+      - "1349.0"
+
+  - name: product_length_cm
+    type: FLOAT
+    description: Length of the product in centimeters.
+    sample_values:
+      - "66.0"
+      - "39.0"
+
+  - name: product_height_cm
+    type: FLOAT
+    description: Height of the product in centimeters.
+    sample_values:
+      - "47.0"
+      - "62.0"
+
+  - name: product_width_cm
+    type: FLOAT
+    description: Width of the product in centimeters.
+    sample_values:
+      - "74.0"
+      - "87.0"
+
+# Joins
+joins:
+  - to: olist_order_items_dataset
+    type: LEFT
+    condition: "olist_products_dataset.product_id = olist_order_items_dataset.product_id"
+    cardinality: one_to_many
+
+# Metrics
+metrics:

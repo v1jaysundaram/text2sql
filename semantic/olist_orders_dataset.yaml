@@ -1,0 +1,97 @@
+version: 1
+
+table: olist_orders_dataset
+description: >
+  Core linking table that tracks the full order lifecycle — from purchase timestamp
+  through approval, carrier handoff, and customer delivery. One row per order.
+business_context: >
+  Use this table to analyze the order lifecycle, including time to approval, shipping,
+  and delivery. Commonly joined with customer and product tables for comprehensive
+  order analysis.
+
+# Columns
+columns:
+  - name: order_id
+    type: VARCHAR
+    description: Unique identifier for each order.
+    sample_values:
+      - "76dfdc67dd1cc3e3a74027dbee5d9cd8"
+      - "f989d3ba2acbcf3d6168a67eef142f3e"
+
+  - name: customer_id
+    type: VARCHAR
+    description: Unique identifier for the customer who placed the order.
+    sample_values:
+      - "6276e8b570661459322c7d568067adb2"
+      - "d868db4e10343d69177ba7592e3ddde3"
+
+  - name: order_status
+    type: VARCHAR
+    description: Current status of the order in its lifecycle.
+    sample_values:
+      - "canceled"
+      - "invoiced"
+
+  - name: order_purchase_timestamp
+    type: DATETIME
+    description: Timestamp when the order was placed.
+    sample_values:
+      - "2017-06-01 22:05:50"
+      - "2018-08-17 15:33:51"
+
+  - name: order_approved_at
+    type: DATETIME
+    description: Timestamp when the order was approved.
+    sample_values:
+      - "2017-09-06 13:05:11"
+      - "2017-11-24 23:33:01"
+
+  - name: order_delivered_carrier_date
+    type: DATETIME
+    description: Date when the order was handed over to the carrier.
+    sample_values:
+      - "2017-08-02 18:52:58"
+      - "2017-11-10 17:49:44"
+
+  - name: order_delivered_customer_date
+    type: DATETIME
+    description: Date when the order was delivered to the customer.
+    sample_values:
+      - "2018-04-09 22:22:43"
+      - "2017-07-15 14:08:23"
+
+  - name: order_estimated_delivery_date
+    type: DATETIME
+    description: Estimated delivery date for the order.
+    sample_values:
+      - "2018-10-03 00:00:00"
+      - "2016-10-20 00:00:00"
+
+# Joins
+joins:
+  - to: olist_customers_dataset
+    type: LEFT
+    condition: "olist_orders_dataset.customer_id = olist_customers_dataset.customer_id"
+    cardinality: many_to_one
+  - to: olist_order_items_dataset
+    type: LEFT
+    condition: "olist_orders_dataset.order_id = olist_order_items_dataset.order_id"
+    cardinality: one_to_many
+  - to: olist_order_payments_dataset
+    type: LEFT
+    condition: "olist_orders_dataset.order_id = olist_order_payments_dataset.order_id"
+    cardinality: one_to_many
+  - to: olist_order_reviews_dataset
+    type: LEFT
+    condition: "olist_orders_dataset.order_id = olist_order_reviews_dataset.order_id"
+    cardinality: one_to_one
+
+# Metrics
+metrics:
+  - name: avg_time_to_approval
+    description: Average time in days from order purchase to approval.
+    sql: "AVG(DATEDIFF(order_approved_at, order_purchase_timestamp))"
+
+  - name: avg_shipping_time
+    description: Average time in days from carrier handoff to customer delivery.
+    sql: "AVG(DATEDIFF(order_delivered_customer_date, order_delivered_carrier_date))"

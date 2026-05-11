@@ -1,0 +1,58 @@
+version: 1
+
+table: employees
+description: >
+  One row per employee. Stores identity, department assignment,
+  employment status, and hire date.
+business_context: >
+  Use for headcount analysis, org structure queries, or filtering by
+  employment status. Join to departments for org hierarchy and to
+  timesheets for hours-worked analysis.
+
+# Columns
+columns:
+  - name: employee_id
+    type: VARCHAR
+    description: Unique identifier for each employee.
+    sample_values:
+      - "EMP-0042"
+      - "EMP-1891"
+
+  - name: status
+    type: VARCHAR
+    description: Current employment status of the employee.
+    sample_values:
+      - "active"
+      - "inactive"
+      - "on_leave"
+
+  - name: hire_date
+    type: DATETIME
+    description: Date the employee was formally hired by the company.
+    sample_values:
+      - "2019-03-15"
+      - "2021-11-01"
+
+# Joins
+# TODO: review and adjust
+joins:
+  - to: departments
+    type: LEFT
+    condition: "employees.department_id = departments.department_id"
+    cardinality: many_to_one
+
+  - to: timesheets
+    type: LEFT
+    condition: "employees.employee_id = timesheets.employee_id"
+    cardinality: one_to_many
+
+# Metrics
+# TODO: review and adjust
+metrics:
+  - name: avg_tenure_days
+    description: Average number of days employees have been with the company since hire.
+    sql: "AVG(DATEDIFF(CURDATE(), hire_date))"
+
+  - name: active_rate
+    description: Percentage of employees currently in active status.
+    sql: "SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)"

@@ -1,0 +1,59 @@
+version: 1
+
+table: olist_geolocation_dataset
+description: >
+  This table maps Brazilian postal codes to their corresponding latitude, longitude, city, and state. One row represents a unique postal code prefix.
+business_context: >
+  Use this table to resolve geographic locations for customers and sellers based on postal codes. It is essential for analyses involving location-based segmentation or distance calculations. Commonly joined with customer and seller tables using postal code prefixes.
+
+# Columns
+columns:
+  - name: geolocation_zip_code_prefix
+    type: INT
+    description: The prefix of the Brazilian postal code used for geographic mapping.
+    sample_values:
+      - "4965"
+      - "6864"
+
+  - name: geolocation_lat
+    type: FLOAT
+    description: Latitude coordinate of the location associated with the postal code prefix.
+    sample_values:
+      - "-23.742595675832373"
+      - "-23.47076755669728"
+
+  - name: geolocation_lng
+    type: FLOAT
+    description: Longitude coordinate of the location associated with the postal code prefix.
+    sample_values:
+      - "-50.02391543247628"
+      - "-48.794280029755306"
+
+  - name: geolocation_city
+    type: VARCHAR
+    description: Name of the city associated with the postal code prefix.
+    sample_values:
+      - "ourizona"
+      - "santa rita d'oeste"
+
+  - name: geolocation_state
+    type: VARCHAR
+    description: Abbreviation of the state associated with the postal code prefix.
+    sample_values:
+      - "RJ"
+      - "SP"
+
+# Joins
+joins:
+  - to: olist_customers_dataset
+    type: LEFT
+    condition: "olist_geolocation_dataset.geolocation_zip_code_prefix = olist_customers_dataset.customer_zip_code_prefix"
+    cardinality: many_to_one
+
+  - to: olist_sellers_dataset
+    type: LEFT
+    condition: "olist_geolocation_dataset.geolocation_zip_code_prefix = olist_sellers_dataset.seller_zip_code_prefix"
+    cardinality: many_to_one 
+
+# Metrics
+metrics:

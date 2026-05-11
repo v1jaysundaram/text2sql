@@ -1,0 +1,64 @@
+version: 1
+
+table: olist_order_payments_dataset
+description: >
+  Payment details for each order, with one row per payment installment. 
+  Supports multiple payment types such as credit card, boleto, and voucher.
+business_context: >
+  Use this table to analyze payment methods and installment patterns for orders. 
+  Commonly joined with order details to understand payment distribution and 
+  customer payment preferences.
+
+# Columns
+columns:
+  - name: order_id
+    type: VARCHAR
+    description: Unique identifier for each order.
+    sample_values:
+      - "8250f4901ec804e830f26ef6fc285138"
+      - "837b75362f8a7c08c85182dfd16cb72d"
+
+  - name: payment_sequential
+    type: INT
+    description: Sequential number of the payment within the order.
+    sample_values:
+      - "20"
+      - "24"
+
+  - name: payment_type
+    type: VARCHAR
+    description: Type of payment used for the order, such as credit card or boleto.
+    sample_values:
+      - "not_defined"
+      - "boleto"
+
+  - name: payment_installments
+    type: INT
+    description: Number of installments for the payment.
+    sample_values:
+      - "17"
+      - "14"
+
+  - name: payment_value
+    type: FLOAT
+    description: Value of the payment installment in currency units.
+    sample_values:
+      - "279.76"
+      - "543.89"
+
+# Joins
+joins:
+  - to: olist_orders_dataset
+    type: LEFT
+    condition: "olist_order_payments_dataset.order_id = olist_orders_dataset.order_id"
+    cardinality: many_to_one
+
+# Metrics
+metrics:
+  - name: total_payment_value
+    description: Total value of all payment installments.
+    sql: "SUM(payment_value)"
+
+  - name: avg_payment_installments
+    description: Average number of installments per payment.
+    sql: "AVG(payment_installments)"

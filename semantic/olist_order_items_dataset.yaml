@@ -1,0 +1,89 @@
+version: 1
+
+table: olist_order_items_dataset
+description: >
+  One row per item in an order. This table is the primary source for analyzing
+  revenue, product details, seller information, freight costs, and quantities.
+business_context: >
+  Use this table for detailed order item analysis, including revenue calculations,
+  freight cost assessments, and product-level insights. Common joins include orders
+  for order-level details, products for product attributes, and sellers for seller
+  information.
+
+# Columns
+columns:
+  - name: order_id
+    type: VARCHAR
+    description: Unique identifier for each order.
+    sample_values:
+      - "74d9e9683c40581c6efb5d3ef994c902"
+      - "e801a93b3904ca9e8350f176a037047b"
+
+  - name: order_item_id
+    type: INT
+    description: Sequential identifier for each item within an order.
+    sample_values:
+      - "4"
+      - "3"
+
+  - name: product_id
+    type: VARCHAR
+    description: Unique identifier for each product.
+    sample_values:
+      - "03ccf3bdaa33497fa04d1e2f746a4555"
+      - "9760ac8ee2522566f6779aae29e417f3"
+
+  - name: seller_id
+    type: VARCHAR
+    description: Unique identifier for each seller.
+    sample_values:
+      - "2a7dc43cecabf23403078e2188437d1d"
+      - "bd65d163ded559eb90a10cd09fec178f"
+
+  - name: shipping_limit_date
+    type: DATETIME
+    description: Deadline for the seller to ship the item.
+    sample_values:
+      - "2017-07-12 14:55:21"
+      - "2018-02-23 18:47:29"
+
+  - name: price
+    type: FLOAT
+    description: Price of the item in the order.
+    sample_values:
+      - "25.97"
+      - "77.08"
+
+  - name: freight_value
+    type: FLOAT
+    description: Cost of shipping the item.
+    sample_values:
+      - "54.2"
+      - "28.56"
+
+# Joins
+joins:
+  - to: olist_orders_dataset
+    type: LEFT
+    condition: "olist_order_items_dataset.order_id = olist_orders_dataset.order_id"
+    cardinality: many_to_one
+
+  - to: olist_products_dataset
+    type: LEFT
+    condition: "olist_order_items_dataset.product_id = olist_products_dataset.product_id"
+    cardinality: many_to_one
+
+  - to: olist_sellers_dataset
+    type: LEFT
+    condition: "olist_order_items_dataset.seller_id = olist_sellers_dataset.seller_id"
+    cardinality: many_to_one
+
+# Metrics
+metrics:
+  - name: total_revenue
+    description: Total revenue generated from order items.
+    sql: "SUM(price)"
+
+  - name: avg_freight_cost
+    description: Average freight cost per item.
+    sql: "AVG(freight_value)"

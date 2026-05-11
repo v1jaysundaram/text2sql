@@ -1,0 +1,32 @@
+version: 1
+
+table: product_category_name_translation
+description: >
+  Lookup table that maps Portuguese product category names to their English equivalents.
+  One row per product category name.
+business_context: >
+  Use this table to translate product category names from Portuguese to English for reporting
+  and analysis. Commonly joined with product-related tables to provide English category names
+  for better readability in reports.
+
+# Columns
+columns:
+  - name: product_category_name
+    type: VARCHAR
+    description: Portuguese name of the product category.
+    sample_values:
+      - "fashion_esporte"
+      - "moveis_cozinha_area_de_servico_jantar_e_jardim"
+
+  - name: product_category_name_english
+    type: VARCHAR
+    description: English translation of the product category name.
+    sample_values:
+      - "garden_tools"
+      - "signaling_and_security"
+
+# Joins
+joins:
+
+# Metrics
+metrics:
