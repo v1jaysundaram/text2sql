@@ -1,0 +1,13 @@
+# One sentence per table describing its business purpose.
+# This file seeds the business_context and join inference in semantic_builder.py.
+# Edit these descriptions to reflect how your team actually uses each table.
+
+olist_orders_dataset: "Core linking table that tracks the full order lifecycle — from purchase timestamp through approval, carrier handoff, and customer delivery."
+olist_customers_dataset: "Customer master table providing location (city, state, zip) and a stable customer_unique_id to de-duplicate buyers across multiple orders."
+olist_order_items_dataset: "Fact table with one row per item in an order — the primary source for revenue, product, seller, freight cost, and quantity analysis."
+olist_order_payments_dataset: "Payment details for each order, supporting multiple installment rows per order and different payment types."
+olist_order_reviews_dataset: "Customer satisfaction data — review scores and comments submitted after delivery, with one or more reviews possible per order."
+olist_products_dataset: "Product catalog containing physical dimensions (length, height, width, weight), photo count, and category name for each product SKU."
+olist_sellers_dataset: "Seller directory providing the location (city, state, zip) and identity of each Olist marketplace seller."
+olist_geolocation_dataset: "Zip code reference table mapping Brazilian postal codes to latitude, longitude, city, and state — used to resolve customer and seller locations."
+product_category_name_translation: "Lookup table that maps Portuguese product category names (as stored in olist_products_dataset) to their English equivalents."

@@ -26,9 +26,6 @@ venv/
 nextsteps.md
 immediatenextsteps.md
 
-# --- Semantic builder user input ---
-table_purposes.yaml
-
 # --- ChromaDB vector store ---
 chroma_db/
 

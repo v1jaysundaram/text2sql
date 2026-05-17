@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 This project follows a simple versioning approach (v1, v2, ...).
 
 ---
+## [v2.1] - 2026-05-17
+
+### Added
+
+- Introduce `pipeline/` module as the foundation for the Phase 2 LangGraph pipeline, replacing the single-function `main.py` approach.
+
+- Add `pipeline/state.py` — shared `SQLState` TypedDict defining all inter-node fields. Each node reads upstream fields and writes only its own outputs, keeping state transitions explicit and traceable.
+
+- Add `pipeline/query_prep.py` — Node 1. Corrects typos and minor grammatical errors (spelling, subject-verb agreement, pluralization, missing articles) using `gpt-4o-mini` structured output. Preserves meaning exactly — no rephrasing or intent inference. Input length check and HITL ambiguity redirection deferred to Phase 3.
+
+- Add `pipeline/retrieval.py` — Node 2. Embeds the cleaned query via `text-embedding-3-small` and runs cosine similarity search against the ChromaDB semantic index. ChromaDB client is initialised once at module load (not per query) to avoid repeated index reads from disk. Returns top-K table names and full YAML content.
+
+- Add `pipeline/sql_gen.py` — Node 3. Generates SQL from retrieved YAML schema context using `gpt-4o-mini`. Single model for now; multi-model routing will be added in Phase 2 once `context_fetch` provides accurate complexity signal.
+
+### Changed
+
+- Rebuild `main.py` as a LangGraph `StateGraph` assembling the three pipeline nodes (`query_prep → retrieval → sql_gen`) with a clean `run_text2sql(question, debug)` entry point.
+
+### Architectural Note
+
+Intent and complexity classification (join count, aggregation, window functions) was intentionally removed from `query_prep`. Surface-level language is not a reliable signal — complexity can only be accurately determined after schema retrieval and table verification in `context_fetch` (Phase 2). Classification and multi-model routing will be added at that stage.
+
+---
 ## [v2.0] - 2026-05-11
 
 ### Added

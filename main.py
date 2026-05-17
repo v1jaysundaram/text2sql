@@ -1,60 +1,48 @@
 """
-Text-to-SQL entry point: embeds the user question, retrieves relevant table YAMLs
-from ChromaDB, and calls the LLM with full schema context to generate SQL.
+Text-to-SQL v2.0 — LangGraph pipeline entry point.
+
+Pipeline: query_prep → retrieval → sql_gen
+Remaining nodes (verifier, context_fetch, sql_val, sql_exec) added incrementally.
 """
 
-from pathlib import Path
+from langgraph.graph import StateGraph, START, END
 
-import chromadb
-from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-from langchain_openai import ChatOpenAI
+from pipeline.state import SQLState
+from pipeline.query_prep import query_prep
+from pipeline.retrieval import retrieval
+from pipeline.sql_gen import sql_gen
 
-from config import Config
+# Graph
 
-TOP_K = 3
-CHROMA_DIR = "chroma_db"
-COLLECTION_NAME = "semantic_tables"
-EMBEDDING_MODEL = "text-embedding-3-small"
+_graph = StateGraph(SQLState)
+_graph.add_node("query_prep", query_prep)
+_graph.add_node("retrieval", retrieval)
+_graph.add_node("sql_gen", sql_gen)
 
+_graph.add_edge(START, "query_prep")
+_graph.add_edge("query_prep", "retrieval")
+_graph.add_edge("retrieval", "sql_gen")
+_graph.add_edge("sql_gen", END)
 
-# ChromaDB
-
-def _get_collection():
-    client = chromadb.PersistentClient(path=CHROMA_DIR)
-    ef = OpenAIEmbeddingFunction(api_key=Config.OPENAI_API_KEY, model_name=EMBEDDING_MODEL)
-    return client.get_collection(name=COLLECTION_NAME, embedding_function=ef)
-
-
-def _retrieve_yaml_context(question: str) -> str:
-    collection = _get_collection()
-    results = collection.query(query_texts=[question], n_results=TOP_K)
-    yaml_paths = [meta["yaml_path"] for meta in results["metadatas"][0]]
-    parts = []
-    for path in yaml_paths:
-        with open(path, encoding="utf-8") as f:
-            parts.append(f.read())
-    return "\n---\n".join(parts)
+workflow = _graph.compile()
 
 
-# Pipeline
-
-def run_text2sql(question: str) -> str:
-    llm = ChatOpenAI()
-    yaml_context = _retrieve_yaml_context(question)
-    prompt = f"""You are a SQL assistant. Given the schema context below, generate a valid SQL query for the question. Output only the SQL query, nothing else.
-
-Dialect: {Config.DB_DIALECT}
-
-Schema Context:
-{yaml_context}
-
-Question:
-{question}"""
-    response = llm.invoke(prompt)
-    return response.content
+def run_text2sql(question: str, debug: bool = False) -> dict:
+    initial_state: SQLState = {
+        "original_query": question,
+        "cleaned_query": "",
+        "retrieved_tables": [],
+        "retrieved_yamls": [],
+        "sql_query": "",
+        "llm_model_used": "",
+    }
+    result = workflow.invoke(initial_state)
+    if debug:
+        return result
+    return {"answer": result["sql_query"]}
 
 
 if __name__ == "__main__":
-    question = "How many customers are there in the state of Minas Gerais?"
-    sql = run_text2sql(question)
-    print(sql)
+    question = "$$$$ Give me the list of all ordrs and when they where   placed."
+    result = run_text2sql(question, debug=True)
+    print(result["sql_query"])
