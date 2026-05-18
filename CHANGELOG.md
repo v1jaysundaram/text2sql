@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 This project follows a simple versioning approach (v1, v2, ...).
 
 ---
+## [v2.2] - 2026-05-18
+
+### Added
+
+- Add `pipeline/verifier.py` — Node 3 (inserted between retrieval and sql_gen). LLM-powered gatekeeper that reads YAML frontmatter (table name, description, business context — no columns) for each retrieved table and reasons about which are truly required to answer the question. Returns `verified_tables` and `verified_yamls` (full YAML preserved for downstream nodes) for the confirmed subset.
+
+- Add retry-with-rewrite loop: when the verifier finds no relevant tables it returns `suggested_search_terms` and `verifier_reasoning`. `query_prep` detects this feedback and switches to REWRITE mode — rewrites `original_query` to be more precise using the suggested terms, then re-runs retrieval and verification. Capped at 2 retries; exits gracefully with a user-facing error message on exhaustion.
+
+### Changed
+
+- Extend `pipeline/state.py` with six new fields: `verified_tables`, `verified_yamls`, `verifier_reasoning`, `suggested_search_terms`, `error_message`, `retry_count`.
+
+- Upgrade `pipeline/query_prep.py` to two-mode operation: CORRECT mode (default, first pass — typo correction only) and REWRITE mode (triggered by non-empty `suggested_search_terms` — rewrites query using verifier feedback and increments `retry_count`). Two separate module-level LLM chains, one per Pydantic output schema.
+
+- Update `pipeline/sql_gen.py` to read from `verified_yamls` instead of `retrieved_yamls`. Promote `ChatOpenAI` instantiation to module level (was incorrectly inside the node function).
+
+- Bump `retrieval.py` `_TOP_K` from 3 to 5 — gives verifier a wider candidate set to filter from (9 tables total in semantic index).
+
+- Rewire `main.py` graph: `retrieval → verifier → [conditional]` replaces the direct `retrieval → sql_gen` edge. Conditional router sends to `sql_gen` (tables verified), `query_prep` (retry), or `END` (exhausted). Fix `initial_state` bug where `llm_model_used` was set but not defined in `SQLState`.
+
+### Architectural Note
+
+The verifier operates at table-level semantic granularity only — it matches table purpose against question intent but has no visibility into column definitions. A question requiring data the dataset doesn't contain (e.g. a column that doesn't exist) may pass the verifier with a partial table match. Column-level validation and out-of-scope detection are the responsibility of `context_fetch` (Phase 2, next node), which receives the full YAML including all column definitions.
+
+---
+
 ## [v2.1] - 2026-05-17
 
 ### Added

@@ -20,5 +20,15 @@ class SQLState(TypedDict):
     retrieved_tables: List[str]
     retrieved_yamls: List[str]  # raw YAML content strings
 
+    # verifier
+    verified_tables: List[str]
+    verified_yamls: List[str]
+    verifier_reasoning: str
+    suggested_search_terms: List[str]
+    error_message: str
+
+    # retry control
+    retry_count: int
+
     # sql_gen
     sql_query: str
