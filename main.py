@@ -1,27 +1,38 @@
 """
 Text-to-SQL v2.0 — LangGraph pipeline entry point.
 
-Pipeline: query_prep → retrieval → verifier → [route]
-          ↑                                  → sql_gen → END   (tables verified)
-          └──── retry ────────────────────────←          (no tables, retry_count < 2)
-                                             → END       (no tables, retry_count >= 2)
+Pipeline:
+  query_prep → retrieval → verifier → sql_gen
+
+Retry loop (up to 2 retries, shared counter):
+  verifier: no verified tables        → query_prep (rewrite + extend concepts)
+  verifier: partial sufficiency       → query_prep (rewrite + extend concepts with gap terms)
+
+Dead ends (→ END immediately):
+  verifier: retry ceiling hit while tables still empty
 """
 
 from langgraph.graph import StateGraph, START, END
 
+from config import Config
 from pipeline.state import SQLState
 from pipeline.query_prep import query_prep
 from pipeline.retrieval import retrieval
 from pipeline.verifier import verifier
 from pipeline.sql_gen import sql_gen
 
+_MAX_RETRIES = 2
+
 
 def _route_from_verifier(state: SQLState) -> str:
-    if state["verified_tables"]:
-        return "sql_gen"
-    if state.get("error_message"):
-        return END
-    return "query_prep"
+    if not state["verified_tables"]:
+        if state.get("error_message"):
+            return END
+        return "query_prep"
+    if (state.get("verifier_sufficiency") == "partial"
+            and state["retry_count"] < _MAX_RETRIES):
+        return "query_prep"
+    return "sql_gen"
 
 
 _graph = StateGraph(SQLState)
@@ -47,19 +58,28 @@ def run_text2sql(question: str, debug: bool = False) -> dict:
     initial_state: SQLState = {
         "original_query": question,
         "cleaned_query": "",
+        "retrieval_queries": [],
+        # retrieval
         "retrieved_tables": [],
         "retrieved_yamls": [],
+        # verifier
         "verified_tables": [],
         "verified_yamls": [],
         "verifier_reasoning": "",
+        "verifier_sufficiency": "",
         "suggested_search_terms": [],
         "error_message": "",
+        # retry control
         "retry_count": 0,
+        # sql_gen
         "sql_query": "",
     }
+
     result = workflow.invoke(initial_state)
+
     if debug:
         return result
+
     if result.get("error_message"):
         return {"error": result["error_message"]}
     return {"answer": result["sql_query"]}
@@ -67,7 +87,9 @@ def run_text2sql(question: str, debug: bool = False) -> dict:
 
 if __name__ == "__main__":
     #question = "$$$$ Give me the list of all ordrs and when they where   placed."
-    question = "Do we have a user by the name of Vijay?"
-    #question = "How many users signed up in the last month, and which marketing channel brought them in?"
+    #question = "What is the capital of France?"
+    #question = "What is the total revenue by customer state for delivered orders in 2018?"
+    #question = "List top sellers by state alongside their average review score"
+    question = "How many users signed up in the last month, and which marketing channel brought them in?"
     result = run_text2sql(question, debug=True)
-    print(result.get("sql_query") or result.get("error_message"))
+    print("SQL:", result.get("sql_query") or result.get("error_message"))

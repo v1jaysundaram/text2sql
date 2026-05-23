@@ -3,16 +3,20 @@ Node 1 — query_prep
 
 Operates in two modes:
 
-CORRECT mode (default, first pass): corrects typos and minor grammatical errors
-in original_query. Preserves meaning exactly.
+PREP mode (default, first pass): corrects typos/grammar in original_query and
+extracts 3-6 concept phrases for multi-query ChromaDB retrieval.
 
-REWRITE mode (when suggested_search_terms is non-empty): rewrites original_query
-to be more precise using verifier feedback. Increments retry_count.
+EXTEND mode (retry, when suggested_search_terms is non-empty): no LLM call.
+Appends gap terms from the verifier to the existing retrieval_queries. The
+cleaned_query is unchanged — rewriting it wouldn't affect retrieval since
+ChromaDB is driven by the concept phrases, not the query sentence.
 
-LLM: gpt-4o-mini (structured output via function calling)
-Reads:  original_query, suggested_search_terms, verifier_reasoning, retry_count
-Writes: cleaned_query, [retry_count]
+LLM: gpt-4o-mini (structured output, PREP mode only)
+Reads:  original_query, suggested_search_terms, retry_count, retrieval_queries
+Writes: cleaned_query, retrieval_queries, [retry_count]
 """
+
+from typing import List
 
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
@@ -21,72 +25,55 @@ from config import Config
 from pipeline.state import SQLState
 
 
-# --- CORRECT mode ---
-
-class _CorrectedQuery(BaseModel):
+class _PrepOutput(BaseModel):
     cleaned_query: str = Field(
         description=(
             "Query with typos and minor grammatical errors corrected (spelling, subject-verb agreement, "
             "pluralization, missing articles). Normalize whitespace. Do NOT rephrase or change meaning."
         )
     )
-
-
-_CORRECT_SYSTEM_PROMPT = """You are a query correction assistant for a natural language to SQL system.
-
-Correct any typos and minor grammatical errors in the user's question (spelling, subject-verb agreement,
-pluralization, missing articles). Normalize whitespace.
-Do NOT rephrase, reword, or change the meaning in any way."""
-
-
-# --- REWRITE mode ---
-
-class _RewrittenQuery(BaseModel):
-    cleaned_query: str = Field(
+    retrieval_queries: List[str] = Field(
         description=(
-            "A more precise rewrite of the original question that incorporates the suggested "
-            "search terms and verifier feedback. The core intent must remain unchanged — only "
-            "make the question more specific, well-formed, and aligned with the available tables."
+            "3-6 short concept phrases extracted from the question for semantic retrieval. "
+            "Each phrase names one distinct concept needed to answer the question "
+            "(e.g., 'customer orders', 'delivery status', 'revenue by region', 'product category'). "
+            "Do NOT include the full question — only focused keyword phrases."
         )
     )
 
 
-_REWRITE_SYSTEM_PROMPT = """You are a query rewriter for a natural language to SQL system.
+_SYSTEM_PROMPT = """You are a query preparation assistant for a natural language to SQL system.
 
-The user asked a question, but the initial retrieval found no relevant database tables.
-You are given the original question, the verifier's reasoning, and suggested search terms.
+Your tasks:
+1. Correct any typos and minor grammatical errors in the user's question (spelling, subject-verb
+   agreement, pluralization, missing articles). Normalize whitespace. Do NOT rephrase or change meaning.
+2. Extract 3-6 short concept phrases from the question that capture distinct data concepts needed
+   to answer it (e.g. entities, metrics, dimensions, filters). These are used as individual
+   semantic search queries against a table description index — make each phrase focused and specific."""
 
-Rewrite the question to be more precise and specific so that retrieval can find the right tables.
-Use the suggested terms naturally. Do NOT change the user's core intent. Keep the rewrite concise."""
 
-
-_llm_correct = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY).with_structured_output(
-    _CorrectedQuery
-)
-_llm_rewrite = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY).with_structured_output(
-    _RewrittenQuery
+_llm = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY).with_structured_output(
+    _PrepOutput
 )
 
 
 def query_prep(state: SQLState) -> dict:
-    if state.get("suggested_search_terms"):
-        suggested_terms = ", ".join(state["suggested_search_terms"])
-        user_message = (
-            f"Original question: {state['original_query']}\n\n"
-            f"Verifier reasoning: {state['verifier_reasoning']}\n\n"
-            f"Suggested search terms: {suggested_terms}"
-        )
-        result: _RewrittenQuery = _llm_rewrite.invoke([
-            {"role": "system", "content": _REWRITE_SYSTEM_PROMPT},
-            {"role": "user", "content": user_message},
-        ])
+    suggested_terms = list(dict.fromkeys(state.get("suggested_search_terms", [])))
+
+    if suggested_terms:
+        # EXTEND mode: no LLM call — just widen the concept pool with gap terms
+        existing = state.get("retrieval_queries") or []
         return {
-            "cleaned_query": result.cleaned_query,
+            "retrieval_queries": list(dict.fromkeys(existing + suggested_terms)),
             "retry_count": state["retry_count"] + 1,
         }
 
-    result: _CorrectedQuery = _llm_correct.invoke([
-        {"role": "system", "content": _CORRECT_SYSTEM_PROMPT},
+    # PREP mode: correct query + extract concepts
+    result: _PrepOutput = _llm.invoke([
+        {"role": "system", "content": _SYSTEM_PROMPT},
         {"role": "user", "content": state["original_query"]},
     ])
-    return {"cleaned_query": result.cleaned_query}
+    return {
+        "cleaned_query": result.cleaned_query,
+        "retrieval_queries": result.retrieval_queries,
+    }

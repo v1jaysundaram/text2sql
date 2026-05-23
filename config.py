@@ -29,6 +29,7 @@ class Config:
     LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
     LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT", "text2sql")
 
+
     _REQUIRED = [
         "DB_DIALECT", "DB_DRIVER", "DB_USER", "DB_PASSWORD",
         "DB_HOST", "DB_PORT", "DB_NAME",

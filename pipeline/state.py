@@ -15,6 +15,7 @@ class SQLState(TypedDict):
 
     # query_prep
     cleaned_query: str          # typos + grammar corrected, whitespace normalized
+    retrieval_queries: List[str]  # concept phrases for multi-query ChromaDB retrieval
 
     # retrieval
     retrieved_tables: List[str]
@@ -24,6 +25,7 @@ class SQLState(TypedDict):
     verified_tables: List[str]
     verified_yamls: List[str]
     verifier_reasoning: str
+    verifier_sufficiency: str   # "sufficient" | "partial" | ""
     suggested_search_terms: List[str]
     error_message: str
 

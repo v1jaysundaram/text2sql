@@ -1,11 +1,14 @@
 """
 Node 2 — retrieval
 
-Embeds cleaned_query and runs cosine similarity search against the ChromaDB
-semantic index to retrieve the top-K most relevant table schemas (YAML files).
+Runs one ChromaDB cosine similarity search per concept phrase from retrieval_queries
+(produced by query_prep). Results are deduplicated by table name (first-seen wins);
+all unique tables are forwarded to the verifier for relevance filtering.
+Falls back to cleaned_query if retrieval_queries is empty.
 
-No LLM call — one embedding API call (text-embedding-3-small) + local HNSW search.
-ChromaDB client and collection are initialized once at module load, not per query.
+No LLM call — embedding API calls (text-embedding-3-small) + local HNSW search.
+ChromaDB client and collection are initialized once at module load.
+Reads:  retrieval_queries, cleaned_query
 Writes: retrieved_tables, retrieved_yamls
 """
 
@@ -18,7 +21,7 @@ from pipeline.state import SQLState
 _CHROMA_DIR = "chroma_db"
 _COLLECTION_NAME = "semantic_tables"
 _EMBEDDING_MODEL = "text-embedding-3-small"
-_TOP_K = 3
+_TOP_K = 3  # per concept query
 
 # Loaded once at startup — avoids re-reading the index from disk on every query.
 _ef = OpenAIEmbeddingFunction(api_key=Config.OPENAI_API_KEY, model_name=_EMBEDDING_MODEL)
@@ -27,16 +30,24 @@ _collection = _client.get_collection(name=_COLLECTION_NAME, embedding_function=_
 
 
 def retrieval(state: SQLState) -> dict:
-    collection = _collection
-    results = collection.query(query_texts=[state["cleaned_query"]], n_results=_TOP_K)
+    queries = state.get("retrieval_queries") or [state["cleaned_query"]]
 
-    metadatas = results["metadatas"][0]
-    table_names = [m["table"] for m in metadatas]
-    yaml_paths = [m["yaml_path"] for m in metadatas]
+    seen: dict[str, str] = {}  # table_name → yaml_path, insertion-ordered dedup
+    for q in queries:
+        results = _collection.query(
+            query_texts=[q],
+            n_results=_TOP_K,
+            include=["metadatas"],
+        )
+        for meta in results["metadatas"][0]:
+            table = meta["table"]
+            if table not in seen:
+                seen[table] = meta["yaml_path"]
 
-    yamls = []
-    for path in yaml_paths:
-        with open(path, encoding="utf-8") as f:
+    table_names, yamls = [], []
+    for table_name, yaml_path in seen.items():
+        table_names.append(table_name)
+        with open(yaml_path, encoding="utf-8") as f:
             yamls.append(f.read())
 
     return {

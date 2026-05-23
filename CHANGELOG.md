@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 This project follows a simple versioning approach (v1, v2, ...).
 
 ---
+
+## [v2.3] - 2026-05-23
+
+### Changed
+
+- **`pipeline/query_prep.py`** — CORRECT mode now outputs two fields: `cleaned_query` (typo correction, unchanged intent) and `retrieval_queries` (3–6 short concept phrases extracted from the question). These concept phrases are the primary retrieval signal — each becomes a separate ChromaDB query. REWRITE mode replaced with EXTEND mode: no LLM call on retry; existing `retrieval_queries` are extended in Python by appending the verifier's `suggested_search_terms`. Rewriting the query text is unnecessary since ChromaDB is driven by concept phrases, not the sentence. Renamed `_CorrectedQuery` → `_PrepOutput`, `_CORRECT_SYSTEM_PROMPT` → `_SYSTEM_PROMPT`.
+
+- **`pipeline/retrieval.py`** — Multi-concept retrieval replaces single-query lookup. Queries ChromaDB once per concept phrase in `retrieval_queries` (TOP_K=3 per phrase). Results are deduplicated by table name — first-seen wins — and all unique tables are forwarded to the verifier. This widens the candidate pool from a fixed 3 to typically 6–10 unique tables, dramatically reducing partial-match failures on multi-concept questions.
+
+- **`pipeline/verifier.py`** — Added `sufficiency: Literal["sufficient", "partial"]` to `VerifierOutput`. The verifier now performs a two-pass check in one LLM call: (1) filter irrelevant tables, (2) check whether the selected tables' descriptions collectively cover all concepts in `retrieval_queries`. Sets `partial` and populates `suggested_search_terms` when a concept is completely absent from all selected descriptions — not just when no tables are found. Updated system prompt: semantic layer is source of truth; if a description mentions a concept, trust it — column-level check is a later node's job. Concept list (`retrieval_queries`) is passed alongside `cleaned_query` so the sufficiency check is against the exact concepts that drove retrieval.
+
+- **`pipeline/sql_gen.py`** — Now reads `verified_yamls` directly instead of `schema_plan`. Raw YAML content (columns, join conditions, metrics) is passed as-is with a system/user message split for stronger instruction following. Empty `verified_yamls` guard added.
+
+- **`pipeline/state.py`** — Added `retrieval_queries: List[str]` and `verifier_sufficiency: str`. Removed `schema_plan` and all `context_fetch_*` fields (node deferred to Phase 2).
+
+- **`main.py`** — `context_fetch` removed from active graph. Pipeline is now 4 nodes: `query_prep → retrieval → verifier → sql_gen`. Updated `_route_from_verifier`: routes to `query_prep` when verifier returns no tables OR `verifier_sufficiency == "partial"` (under retry ceiling); routes to `sql_gen` otherwise. `initial_state` and error surfacing updated accordingly.
+
+### Preserved
+
+- `pipeline/context_fetch.py` — built but excluded from active pipeline. Reserved for Phase 2 where it will serve as the final authoritative completeness check (full column-level schema plan, `SchemaPlan` structured output).
+
+### Architectural Note
+
+The concept extraction in `query_prep` is the primary defence against partial-match failures — each data concept the question requires gets its own retrieval shot. The verifier provides a best-effort sufficiency check using frontmatter alone; `context_fetch` (Phase 2) remains the authoritative check once full YAML column lists are in scope.
+
+---
 ## [v2.2] - 2026-05-18
 
 ### Added
