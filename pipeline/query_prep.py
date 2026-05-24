@@ -6,13 +6,13 @@ Operates in two modes:
 PREP mode (default, first pass): corrects typos/grammar in original_query and
 extracts 3-6 concept phrases for multi-query ChromaDB retrieval.
 
-EXTEND mode (retry, when suggested_search_terms is non-empty): no LLM call.
-Appends gap terms from the verifier to the existing retrieval_queries. The
-cleaned_query is unchanged — rewriting it wouldn't affect retrieval since
-ChromaDB is driven by the concept phrases, not the query sentence.
+EXTEND mode (retry, when verifier_suggested_terms or context_fetch_suggested_terms is non-empty):
+no LLM call. Merges gap terms from verifier and/or context_fetch into retrieval_queries.
+cleaned_query is unchanged — ChromaDB is driven by concept phrases, not the query sentence.
 
 LLM: gpt-4o-mini (structured output, PREP mode only)
-Reads:  original_query, suggested_search_terms, retry_count, retrieval_queries
+Reads:  original_query, verifier_suggested_terms, context_fetch_suggested_terms,
+        retry_count, retrieval_queries
 Writes: cleaned_query, retrieval_queries, [retry_count]
 """
 
@@ -58,10 +58,12 @@ _llm = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY).with_struc
 
 
 def query_prep(state: SQLState) -> dict:
-    suggested_terms = list(dict.fromkeys(state.get("suggested_search_terms", [])))
+    verifier_terms = state.get("verifier_suggested_terms") or []
+    cf_terms = state.get("context_fetch_suggested_terms") or []
+    suggested_terms = list(dict.fromkeys(verifier_terms + cf_terms))
 
     if suggested_terms:
-        # EXTEND mode: no LLM call — just widen the concept pool with gap terms
+        # EXTEND mode: no LLM call — merge gap terms from verifier and/or context_fetch
         existing = state.get("retrieval_queries") or []
         return {
             "retrieval_queries": list(dict.fromkeys(existing + suggested_terms)),

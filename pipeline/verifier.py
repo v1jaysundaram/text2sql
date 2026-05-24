@@ -13,7 +13,7 @@ Semantic layer descriptions are the source of truth; column-level validation is 
 LLM: gpt-4o-mini (structured output)
 Reads:  cleaned_query, retrieval_queries, retrieved_yamls, retry_count
 Writes: verified_tables, verified_yamls, verifier_reasoning, verifier_sufficiency,
-        suggested_search_terms, error_message
+        verifier_suggested_terms, error_message
 """
 
 from typing import List, Literal
@@ -25,7 +25,7 @@ from langchain_openai import ChatOpenAI
 from config import Config
 from pipeline.state import SQLState
 
-_MAX_RETRIES = 2
+_MAX_RETRIES = 1
 
 
 class VerifierOutput(BaseModel):
@@ -135,11 +135,20 @@ def verifier(state: SQLState) -> dict:
 
     needs_terms = not result.relevant_tables or result.sufficiency == "partial"
 
+    # Reset retry_count when handing off to context_fetch for the first time so context_fetch
+    # gets its own fresh budget. Guard: only reset if context_fetch hasn't run yet ("").
+    passing_to_context_fetch = (
+        bool(result.relevant_tables)
+        and result.sufficiency == "sufficient"
+        and not state.get("context_fetch_completeness")
+    )
+
     return {
         "verified_tables": result.relevant_tables,
         "verified_yamls": verified_yamls,
         "verifier_reasoning": result.reasoning,
         "verifier_sufficiency": result.sufficiency if result.relevant_tables else "",
-        "suggested_search_terms": result.suggested_search_terms if needs_terms else [],
+        "verifier_suggested_terms": result.suggested_search_terms if needs_terms else [],
         "error_message": error_message,
+        "retry_count": 0 if passing_to_context_fetch else state["retry_count"],
     }

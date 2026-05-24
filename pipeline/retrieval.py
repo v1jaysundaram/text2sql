@@ -30,7 +30,7 @@ _collection = _client.get_collection(name=_COLLECTION_NAME, embedding_function=_
 
 
 def retrieval(state: SQLState) -> dict:
-    queries = state.get("retrieval_queries") or [state["cleaned_query"]]
+    queries = state.get("retrieval_queries")
 
     seen: dict[str, str] = {}  # table_name → yaml_path, insertion-ordered dedup
     for q in queries:
