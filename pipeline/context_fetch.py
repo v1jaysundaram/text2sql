@@ -98,10 +98,11 @@ def _format_yamls_for_plan(verified_yamls: List[str]) -> str:
 
 
 
-def _build_state_output(plan: SchemaPlan, retry_count: int) -> dict:
+def _build_state_output(plan: SchemaPlan, cf_count: int) -> dict:
     incomplete = plan.completeness == "incomplete"
+    new_count = cf_count + 1 if incomplete else cf_count
     error = ""
-    if incomplete and retry_count >= _MAX_RETRIES:
+    if incomplete and new_count > _MAX_RETRIES:
         error = (
             "Could not find all required columns after retries. "
             "Please verify your semantic layer YAML files contain the needed columns, "
@@ -114,6 +115,7 @@ def _build_state_output(plan: SchemaPlan, retry_count: int) -> dict:
         "context_fetch_suggested_terms": plan.suggested_terms if incomplete else [],
         "context_fetch_gap_message": plan.gap_message if incomplete else "",
         "context_fetch_error": error,
+        "context_fetch_retry_count": new_count,
     }
 
 
@@ -212,4 +214,4 @@ def context_fetch(state: SQLState) -> dict:
             "context_fetch_error": str(exc),
         }
 
-    return _build_state_output(plan, state["retry_count"])
+    return _build_state_output(plan, state["context_fetch_retry_count"])  # count passed in; incremented inside if incomplete

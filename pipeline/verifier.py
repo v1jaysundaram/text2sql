@@ -11,7 +11,7 @@ If tables found but partial → suggests gap terms → query_prep re-runs (EXTEN
 Semantic layer descriptions are the source of truth; column-level validation is sql_gen's job.
 
 LLM: gpt-4o-mini (structured output)
-Reads:  cleaned_query, retrieval_queries, retrieved_yamls, retry_count
+Reads:  cleaned_query, retrieval_queries, retrieved_yamls, verifier_retry_count
 Writes: verified_tables, verified_yamls, verifier_reasoning, verifier_sufficiency,
         verifier_suggested_terms, error_message
 """
@@ -135,27 +135,20 @@ def verifier(state: SQLState) -> dict:
         if yaml.safe_load(yaml_str).get("table") in relevant_set
     ]
 
+    needs_terms = not result.relevant_tables or result.sufficiency == "partial"
+    new_count = state["verifier_retry_count"] + 1 if needs_terms else state["verifier_retry_count"]
+
     error_message = ""
-    if not result.relevant_tables and state["retry_count"] >= _MAX_RETRIES:
+    if not result.relevant_tables and new_count > _MAX_RETRIES:
         error_message = (
             "Could not find relevant tables after retries. "
             "Please try rephrasing your question."
         )
-    elif result.relevant_tables and result.sufficiency == "partial" and state["retry_count"] >= _MAX_RETRIES:
+    elif result.sufficiency == "partial" and new_count > _MAX_RETRIES:
         error_message = (
             "Found relevant tables but could not cover all required concepts after retries. "
             "Please try rephrasing your question."
         )
-
-    needs_terms = not result.relevant_tables or result.sufficiency == "partial"
-
-    # Reset retry_count when handing off to context_fetch for the first time so context_fetch
-    # gets its own fresh budget. Guard: only reset if context_fetch hasn't run yet ("").
-    passing_to_context_fetch = (
-        bool(result.relevant_tables)
-        and result.sufficiency == "sufficient"
-        and not state.get("context_fetch_completeness")
-    )
 
     return {
         "verified_tables": result.relevant_tables,
@@ -164,5 +157,5 @@ def verifier(state: SQLState) -> dict:
         "verifier_sufficiency": result.sufficiency if result.relevant_tables else "",
         "verifier_suggested_terms": result.suggested_search_terms if needs_terms else [],
         "error_message": error_message,
-        "retry_count": 0 if passing_to_context_fetch else state["retry_count"],
+        "verifier_retry_count": new_count,
     }

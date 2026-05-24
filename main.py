@@ -24,26 +24,22 @@ from pipeline.verifier import verifier
 from pipeline.context_fetch import context_fetch
 from pipeline.sql_gen import sql_gen
 
-_MAX_RETRIES = 1
-
-
 def _route_from_verifier(state: SQLState) -> str:
     if state.get("error_message"):
         return END
     if not state["verified_tables"]:
         return "query_prep"
     if state.get("verifier_sufficiency") == "partial":
-        return "query_prep" if state["retry_count"] < _MAX_RETRIES else END
+        return "query_prep"
     return "context_fetch"
 
 
 def _route_from_context_fetch(state: SQLState) -> str:
     if state.get("context_fetch_completeness") == "complete":
         return "sql_gen"
-    # incomplete — retry if budget remains, else terminal
-    if state["retry_count"] < _MAX_RETRIES:
-        return "query_prep"
-    return END
+    if state.get("context_fetch_error"):
+        return END
+    return "query_prep"
 
 
 _graph = StateGraph(SQLState)
@@ -87,7 +83,8 @@ def run_text2sql(question: str, debug: bool = False) -> dict:
         "verifier_suggested_terms": [],
         "error_message": "",
         # retry control
-        "retry_count": 0,
+        "verifier_retry_count": 0,
+        "context_fetch_retry_count": 0,
         # context_fetch
         "schema_plan": {},
         "context_fetch_reasoning": "",

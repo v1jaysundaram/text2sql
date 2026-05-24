@@ -4,16 +4,15 @@ Node 1 — query_prep
 Operates in two modes:
 
 PREP mode (default, first pass): corrects typos/grammar in original_query and
-extracts 3-6 concept phrases for multi-query ChromaDB retrieval.
+extracts concept phrases for multi-query ChromaDB retrieval.
 
 EXTEND mode (retry, when verifier_suggested_terms or context_fetch_suggested_terms is non-empty):
-no LLM call. Merges gap terms from verifier and/or context_fetch into retrieval_queries.
-cleaned_query is unchanged — ChromaDB is driven by concept phrases, not the query sentence.
+no LLM call. Merges gap terms into retrieval_queries. No counter logic — counters are
+owned by their respective nodes (verifier, context_fetch).
 
 LLM: gpt-4o-mini (structured output, PREP mode only)
-Reads:  original_query, verifier_suggested_terms, context_fetch_suggested_terms,
-        retry_count, retrieval_queries
-Writes: cleaned_query, retrieval_queries, [retry_count]
+Reads:  original_query, verifier_suggested_terms, context_fetch_suggested_terms, retrieval_queries
+Writes: cleaned_query, retrieval_queries
 """
 
 from typing import List
@@ -63,11 +62,10 @@ def query_prep(state: SQLState) -> dict:
     suggested_terms = list(dict.fromkeys(verifier_terms + cf_terms))
 
     if suggested_terms:
-        # EXTEND mode: no LLM call — merge gap terms from verifier and/or context_fetch
+        # EXTEND mode: no LLM call — merge gap terms, counters managed by their nodes
         existing = state.get("retrieval_queries") or []
         return {
             "retrieval_queries": list(dict.fromkeys(existing + suggested_terms)),
-            "retry_count": state["retry_count"] + 1,
         }
 
     # PREP mode: correct query + extract concepts

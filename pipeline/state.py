@@ -29,13 +29,14 @@ class SQLState(TypedDict):
     verifier_suggested_terms: List[str]
     error_message: str
 
-    # retry control
-    retry_count: int                     # single counter; incremented by query_prep EXTEND, reset to 0 by verifier on first handoff to context_fetch
+    # retry control — each node increments its own counter only on bad outcomes
+    verifier_retry_count: int            # incremented by verifier when no tables or partial
+    context_fetch_retry_count: int       # incremented by context_fetch when incomplete
 
     # context_fetch
     schema_plan: dict                        # SchemaPlan.model_dump(); {} until set
     context_fetch_reasoning: str
-    context_fetch_completeness: str          # "complete" | "incomplete" | ""
+    context_fetch_completeness: str          # "complete" | "incomplete"
     context_fetch_suggested_terms: List[str]
     context_fetch_gap_message: str
     context_fetch_error: str

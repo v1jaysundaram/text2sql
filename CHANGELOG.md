@@ -4,6 +4,33 @@ All notable changes to this project are documented in this file.
 This project follows a simple versioning approach (v1, v2, ...).
 
 ---
+## [v2.4] - 2026-05-25
+
+### Added
+
+- **`pipeline/context_fetch.py`** — Node 4 (inserted between verifier and sql_gen). Column-level validation of verified table schemas using `gpt-4o-mini` structured output. Reads full YAML files and checks whether all data elements required to answer the question (filter columns, dimension columns, metrics, join keys) actually exist by name. Produces a structured `SchemaPlan` — `selected_columns` (with role: SELECT/WHERE/GROUP BY/etc.), `required_joins` (verbatim conditions from YAML), `relevant_metrics` (verbatim SQL expressions), and `filter_hints` (explicit question filters only). Sets `completeness: "complete" | "incomplete"`: complete proceeds to sql_gen; incomplete populates `gaps` and `suggested_terms` for a targeted retry.
+
+- **`SchemaPlan` Pydantic model** — structured output schema for context_fetch comprising `ColumnRef`, `JoinSpec`, `MetricRef`, `FilterHint`, and `SchemaGap` sub-models. Join type defaults to YAML value; overrides to INNER only when the question filters on a column from the joined table. `filter_hints` only populated when the question explicitly states a filter value — never inferred from business context.
+
+### Changed
+
+- **`pipeline/state.py`** — Added six `context_fetch_*` fields (`schema_plan`, `context_fetch_reasoning`, `context_fetch_completeness`, `context_fetch_suggested_terms`, `context_fetch_gap_message`, `context_fetch_error`). Replaced single `retry_count` with two independent counters: `verifier_retry_count` and `context_fetch_retry_count`.
+
+- **`pipeline/verifier.py`** — System prompt updated: SQL operations (ranking, ordering, aggregation, "top N") are query transformations derivable from existing data and must never trigger "partial" — only missing data concepts do. Node now increments `verifier_retry_count` itself, but only on bad outcomes (no tables or partial); a successful pass through verifier during a context_fetch retry does not consume verifier's budget. Added 60s timeout.
+
+- **`pipeline/context_fetch.py`** — Node increments `context_fetch_retry_count` only when plan is incomplete. System prompt passes concept phrases (from `retrieval_queries`) so the LLM knows what specific data elements to look for. YAML structure note added: `name:` is a YAML key meaning "the column is called X" — not a data column itself. Full raw YAML passed as-is (no token-trimming); optimisation deferred.
+
+- **`pipeline/sql_gen.py`** — Now uses `schema_plan` as primary guide (exact columns, verbatim join conditions, verbatim metric SQL) with full `verified_yamls` as reference for types and sample values. Added 60s timeout.
+
+- **`pipeline/query_prep.py`** — Removed all counter logic from EXTEND mode. Counters are now fully owned by their respective nodes; query_prep is a pure EXTEND/PREP dispatcher. Added 60s timeout.
+
+- **`main.py`** — Pipeline extended to 5 nodes: `query_prep → retrieval → verifier → context_fetch → sql_gen`. Routing simplified: `_route_from_verifier` and `_route_from_context_fetch` check only outcome flags (`error_message`, `context_fetch_error`, `completeness`) — no counter comparisons. Removed `_MAX_RETRIES` from routing layer; each node owns its own budget constant.
+
+### Architectural Note
+
+The two-level validation split is intentional: verifier confirms table-level coverage using frontmatter descriptions only (fast, low-token); context_fetch confirms column-level coverage against full YAML (authoritative, higher-token). The node-owned counter design ensures that a successful verifier pass during a context_fetch retry loop does not consume verifier's retry budget — each stage gets an independent failure budget of 1 retry.
+
+---
 
 ## [v2.3] - 2026-05-23
 
