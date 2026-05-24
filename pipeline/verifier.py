@@ -74,21 +74,30 @@ You are given an explicit list of concepts that were extracted from the question
 Check whether each concept is covered by at least one selected table's description or
 business context.
 
+CRITICAL DISTINCTION — data concepts vs SQL operations:
+- SQL operations (ranking, ordering, aggregation, filtering, counting, "top N", "highest",
+  "lowest", "most", "least", "average", "total", "per", "by") are ALWAYS derivable from
+  existing data via ORDER BY, LIMIT, GROUP BY, SUM, COUNT, AVG, etc. Never flag these as
+  missing — they are not data concepts, they are query transformations.
+- Only flag "partial" for missing DATA concepts: entities (customer, product, seller),
+  measures (price, revenue, quantity), dimensions (category, region, date), or filters
+  (status, type) that have no representation in any selected table's description.
+
 Set sufficiency:
-- "sufficient": every required concept is mentioned or clearly implied in at least one
+- "sufficient": every required DATA concept is mentioned or clearly implied in at least one
   selected table's description. If the description says the concept is there, trust it —
   do NOT speculate about whether a specific column exists. Column-level validation happens
   in a later node.
-- "partial": a required concept is completely absent from ALL selected table descriptions
+- "partial": a required DATA concept is completely absent from ALL selected table descriptions
   with no mention or implication. This is a high bar — only flag partial when a concept
   has zero coverage across all descriptions.
 
 IMPORTANT: The semantic layer is the source of truth. If a table's description implies a
-concept is present, mark sufficient. Only suggest retry terms when a concept is genuinely
+concept is present, mark sufficient. Only suggest retry terms when a DATA concept is genuinely
 unrepresented across all retrieved table descriptions."""
 
 
-_llm = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY).with_structured_output(
+_llm = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY, timeout=60).with_structured_output(
     VerifierOutput
 )
 
@@ -130,6 +139,11 @@ def verifier(state: SQLState) -> dict:
     if not result.relevant_tables and state["retry_count"] >= _MAX_RETRIES:
         error_message = (
             "Could not find relevant tables after retries. "
+            "Please try rephrasing your question."
+        )
+    elif result.relevant_tables and result.sufficiency == "partial" and state["retry_count"] >= _MAX_RETRIES:
+        error_message = (
+            "Found relevant tables but could not cover all required concepts after retries. "
             "Please try rephrasing your question."
         )
 

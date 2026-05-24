@@ -28,13 +28,12 @@ _MAX_RETRIES = 1
 
 
 def _route_from_verifier(state: SQLState) -> str:
+    if state.get("error_message"):
+        return END
     if not state["verified_tables"]:
-        if state.get("error_message"):
-            return END
         return "query_prep"
-    if (state.get("verifier_sufficiency") == "partial"
-            and state["retry_count"] < _MAX_RETRIES):
-        return "query_prep"
+    if state.get("verifier_sufficiency") == "partial":
+        return "query_prep" if state["retry_count"] < _MAX_RETRIES else END
     return "context_fetch"
 
 
@@ -120,7 +119,14 @@ if __name__ == "__main__":
     #question = "What is the total revenue by customer state for delivered orders in 2018?"
     #question = "List top sellers by state alongside their average review score"
     #question = "How many users signed up in the last month, and which marketing channel brought them in?"
-    question = "What is the average review score by product category?"
-    ques
+    #question = "What is the average review score by product category?"
+    question = "Give me 5 customer names and their customer id at random"
     result = run_text2sql(question, debug=True)
-    print("SQL:", result.get("sql_query") or result.get("error_message"))
+    output = (
+        result.get("sql_query")
+        or result.get("error_message")
+        or result.get("context_fetch_error")
+        or result.get("context_fetch_gap_message")
+        or "(no output)"
+    )
+    print("SQL:", output)

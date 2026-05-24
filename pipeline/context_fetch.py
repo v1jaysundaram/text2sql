@@ -17,7 +17,6 @@ Completeness semantics:
 """
 
 from typing import List, Literal
-import yaml
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 
@@ -60,7 +59,7 @@ class MetricRef(BaseModel):
 class FilterHint(BaseModel):
     table: str = Field(description="Table containing the filter column")
     column: str = Field(description="Column to filter on")
-    description: str = Field(description="e.g. WHERE order_status = 'delivered'")
+    description: str = Field(description="Exact filter condition as a SQL predicate, e.g. 'year = 2018' or 'status = \\'approved\\''  — only when the question explicitly states a filter value")
 
 
 class SchemaGap(BaseModel):
@@ -95,26 +94,7 @@ class SchemaPlan(BaseModel):
 # ─────────────────────────── Helpers ───────────────────────────
 
 def _format_yamls_for_plan(verified_yamls: List[str]) -> str:
-    """Compact YAML blocks stripped of version/business_context to reduce tokens."""
-    parts = []
-    for yaml_str in verified_yamls:
-        data = yaml.safe_load(yaml_str)
-        block = f"Table: {data['table']}\n"
-        block += "Columns:\n"
-        for col in data.get("columns", []):
-            samples = ", ".join(str(v) for v in col.get("sample_values", []))
-            block += f"  - {col['name']} ({col['type']}): {col['description']}"
-            if samples:
-                block += f" [samples: {samples}]"
-            block += "\n"
-        block += "Joins:\n"
-        for j in data.get("joins", []):
-            block += f"  - {j['type']} JOIN {j['to']} ON {j['condition']} ({j['cardinality']})\n"
-        block += "Metrics:\n"
-        for m in data.get("metrics", []):
-            block += f"  - {m['name']}: {m['sql']}  # {m['description']}\n"
-        parts.append(block)
-    return "\n---\n".join(parts)
+    return "\n---\n".join(verified_yamls)
 
 
 
@@ -146,15 +126,19 @@ collectively cover all required concepts at the description level. Your job is s
 column-level validation — check whether the specific columns, join conditions, and metrics
 needed to answer the question actually exist in the schemas provided.
 
+YAML STRUCTURE NOTE: In each schema, columns are listed as YAML entries where `name:` is the
+field holding the column's identifier (e.g. `name: customer_id` means the column is called
+`customer_id`). The word `name` itself is NOT a data column — never reference it as one.
+Only use the values that appear after `name:` as actual column names.
+
 STEP 1 — Column-level Completeness Assessment (do this FIRST):
-Identify all required data elements: filter columns (WHERE), dimension columns (GROUP BY),
-measure columns/metrics (SELECT aggregations), sort columns (ORDER BY), and join keys.
-Check whether each required column/metric exists in the verified table schemas.
+For each concept phrase provided, identify the specific data element it requires (a column,
+metric, or join key) and verify it exists by name in the schemas.
 
 Set completeness as follows:
-- "complete":    ALL required columns, joins, and metrics exist in the verified schemas. Proceed to plan.
-- "incomplete":  At least one required column or metric is missing from the schemas.
-                 Populate gaps with specific column/table names to search for next.
+- "complete":    Every concept phrase maps to a real column/metric present in the schemas.
+- "incomplete":  At least one concept phrase cannot be satisfied by any existing column or metric.
+                 Populate gaps and suggested_terms.
 
 STEP 2 — Build the schema plan (only for completeness = "complete"):
 - primary_table: the fact/hub table the FROM clause anchors to.
@@ -172,12 +156,14 @@ HARD RULES:
 - Do NOT reference table names not present in the verified schemas.
 - Do NOT invent join conditions — only use conditions from the YAML joins section.
 - Set "incomplete" rather than guessing at a plan with missing columns.
+- filter_hints: ONLY populate when the question explicitly states a filter value or condition.
+  Never invent filters based on assumed business context.
 - For gaps: suggest the specific column or table name you are looking for, but written without
   underscores (e.g. 'customer state' not 'customer_state', 'order payments' not 'order_payments').
   These are used for semantic search — be specific, not generic."""
 
 
-_llm = ChatOpenAI(model=_MODEL, api_key=Config.OPENAI_API_KEY).with_structured_output(SchemaPlan)
+_llm = ChatOpenAI(model=_MODEL, api_key=Config.OPENAI_API_KEY, timeout=60).with_structured_output(SchemaPlan)
 
 
 # ─────────────────────────── Node ───────────────────────────
@@ -197,8 +183,15 @@ def context_fetch(state: SQLState) -> dict:
             f"Suggest different, more targeted column/table names to resolve remaining gaps.\n\n"
         )
 
+    concepts = state.get("retrieval_queries") or []
+    concepts_section = (
+        f"Concept phrases extracted from the question: {', '.join(concepts)}\n\n"
+        if concepts else ""
+    )
+
     user_msg = (
         f"Question: {state['cleaned_query']}\n\n"
+        f"{concepts_section}"
         f"Verified Table Schemas:\n\n{schema_text}\n\n"
         f"Verifier Reasoning: {state['verifier_reasoning']}\n\n"
         f"{previous_terms_section}"

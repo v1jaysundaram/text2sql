@@ -34,7 +34,7 @@ class _PrepOutput(BaseModel):
     )
     retrieval_queries: List[str] = Field(
         description=(
-            "3-6 short concept phrases extracted from the question for semantic retrieval. "
+            "short concept phrases extracted from the question for semantic retrieval. "
             "Each phrase names one distinct concept needed to answer the question "
             "(e.g., 'customer orders', 'delivery status', 'revenue by region', 'product category'). "
             "Do NOT include the full question — only focused keyword phrases."
@@ -47,12 +47,12 @@ _SYSTEM_PROMPT = """You are a query preparation assistant for a natural language
 Your tasks:
 1. Correct any typos and minor grammatical errors in the user's question (spelling, subject-verb
    agreement, pluralization, missing articles). Normalize whitespace. Do NOT rephrase or change meaning.
-2. Extract 3-6 short concept phrases from the question that capture distinct data concepts needed
+2. Extract short concept phrases from the question that capture distinct data concepts needed
    to answer it (e.g. entities, metrics, dimensions, filters). These are used as individual
    semantic search queries against a table description index — make each phrase focused and specific."""
 
 
-_llm = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY).with_structured_output(
+_llm = ChatOpenAI(model="gpt-4o-mini", api_key=Config.OPENAI_API_KEY, timeout=60).with_structured_output(
     _PrepOutput
 )
 

@@ -39,7 +39,7 @@ Output rules:
 - Output only the SQL query — no explanation, no markdown fences.
 - Respect the SQL dialect specified."""
 
-_llm = ChatOpenAI(model=_MODEL, api_key=Config.OPENAI_API_KEY)
+_llm = ChatOpenAI(model=_MODEL, api_key=Config.OPENAI_API_KEY, timeout=60)
 
 
 def _format_schema_plan(plan: Dict[str, Any]) -> str:
