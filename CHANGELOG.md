@@ -5,7 +5,7 @@ This project follows a simple versioning approach (v1, v2, ...).
 
 ---
 ## [v2.4] - 2026-05-25
-
+  
 ### Added
 
 - **`pipeline/context_fetch.py`** — Node 4 (inserted between verifier and sql_gen). Column-level validation of verified table schemas using `gpt-4o-mini` structured output. Reads full YAML files and checks whether all data elements required to answer the question (filter columns, dimension columns, metrics, join keys) actually exist by name. Produces a structured `SchemaPlan` — `selected_columns` (with role: SELECT/WHERE/GROUP BY/etc.), `required_joins` (verbatim conditions from YAML), `relevant_metrics` (verbatim SQL expressions), and `filter_hints` (explicit question filters only). Sets `completeness: "complete" | "incomplete"`: complete proceeds to sql_gen; incomplete populates `gaps` and `suggested_terms` for a targeted retry.

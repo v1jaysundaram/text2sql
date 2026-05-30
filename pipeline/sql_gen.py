@@ -9,7 +9,7 @@ Reads:  cleaned_query, schema_plan, verified_yamls
 Writes: sql_query
 """
 
-from typing import Any, Dict
+import json
 
 from langchain_openai import ChatOpenAI
 
@@ -42,54 +42,19 @@ Output rules:
 _llm = ChatOpenAI(model=_MODEL, api_key=Config.OPENAI_API_KEY, timeout=60)
 
 
-def _format_schema_plan(plan: Dict[str, Any]) -> str:
-    if not plan:
-        return ""
-    lines = [
-        f"Primary table: {plan.get('primary_table', '')}",
-        f"Used tables: {', '.join(plan.get('used_tables', []))}",
-        f"Dropped tables: {', '.join(plan.get('dropped_tables', []))}",
-        "",
-        "Selected columns:",
-    ]
-    for col in plan.get("selected_columns", []):
-        lines.append(f"  {col['table']}.{col['column']} — role: {col['role']}")
-
-    lines.append("\nRequired joins:")
-    for j in plan.get("required_joins", []):
-        lines.append(
-            f"  {j['join_type']} JOIN {j['to_table']} ON {j['condition']}  "
-            f"({j['cardinality']})"
-        )
-
-    metrics = plan.get("relevant_metrics", [])
-    if metrics:
-        lines.append("\nMetrics (use SQL verbatim):")
-        for m in metrics:
-            lines.append(f"  {m['metric_name']}: {m['sql_expression']}  -- {m['description']}")
-
-    hints = plan.get("filter_hints", [])
-    if hints:
-        lines.append("\nFilter hints:")
-        for h in hints:
-            lines.append(f"  {h['table']}.{h['column']}: {h['description']}")
-
-    return "\n".join(lines)
-
-
 def sql_gen(state: SQLState) -> dict:
     if not state.get("verified_yamls"):
         return {"sql_query": ""}
 
-    plan_section = _format_schema_plan(state.get("schema_plan") or {})
     schema_context = "\n---\n".join(state["verified_yamls"])
+    plan = state.get("schema_plan") or {}
 
     user_message = (
         f"Dialect: {Config.DB_DIALECT}\n\n"
         f"Question: {state['cleaned_query']}\n\n"
     )
-    if plan_section:
-        user_message += f"Schema Plan:\n{plan_section}\n\n"
+    if plan:
+        user_message += f"Schema Plan:\n{json.dumps(plan, indent=2)}\n\n"
     user_message += f"Full Schema Reference:\n{schema_context}"
 
     response = _llm.invoke([
