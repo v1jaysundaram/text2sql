@@ -1,11 +1,12 @@
 """
-Node 4 — sql_gen
+Node 5 — sql_gen
 
-Generates SQL from the schema_plan (column/join/metric blueprint from context_fetch)
-plus full verified YAMLs as reference for exact types and sample values.
+Generates SQL purely from the schema_plan produced by context_fetch.
+The plan already contains exact column names, verbatim join conditions,
+verbatim metric SQL, and filter hints — no raw YAML needed.
 
 LLM: gpt-4o-mini
-Reads:  cleaned_query, schema_plan, verified_yamls
+Reads:  cleaned_query, schema_plan
 Writes: sql_query
 """
 
@@ -20,42 +21,31 @@ _MODEL = "gpt-4o-mini"
 
 _SYSTEM_PROMPT = """You are a SQL writer for a natural language to SQL system.
 
-You are given a schema plan and full table schemas.
-
-Schema plan rules (highest priority):
+You are given a schema plan. Follow it exactly:
 - Use ONLY the tables listed in used_tables.
-- Include ONLY the columns listed in selected_columns; their role field tells you
-  whether each column belongs in SELECT, WHERE, GROUP BY, HAVING, or ORDER BY.
-- Copy required_joins join conditions VERBATIM — do not rewrite or alter the ON condition.
-  Use the join_type from the schema plan (it may already override the YAML default based on context).
+- Include ONLY the columns in selected_columns; their role field tells you
+  whether each belongs in SELECT, WHERE, GROUP BY, HAVING, or ORDER BY.
+- Copy required_joins conditions VERBATIM — do not rewrite or alter the ON clause.
+  Use the join_type specified in the plan.
 - Copy relevant_metrics SQL expressions VERBATIM into the SELECT clause.
-- Apply filter_hints as WHERE conditions; use sample values from the full schema for literals.
+- Apply filter_hints as WHERE conditions exactly as described.
 
-Full schema rules (reference only):
-- Consult the full schemas for exact column names, data types, and sample values.
-- Do NOT use any table or column not present in the full schemas.
-
-Output rules:
-- Output only the SQL query — no explanation, no markdown fences.
-- Respect the SQL dialect specified."""
+Output only the SQL query — no explanation, no markdown fences.
+Respect the SQL dialect specified."""
 
 _llm = ChatOpenAI(model=_MODEL, api_key=Config.OPENAI_API_KEY, timeout=60)
 
 
 def sql_gen(state: SQLState) -> dict:
-    if not state.get("verified_yamls"):
-        return {"sql_query": ""}
-
-    schema_context = "\n---\n".join(state["verified_yamls"])
     plan = state.get("schema_plan") or {}
+    if not plan:
+        return {"sql_query": ""}
 
     user_message = (
         f"Dialect: {Config.DB_DIALECT}\n\n"
         f"Question: {state['cleaned_query']}\n\n"
+        f"Schema Plan:\n{json.dumps(plan, indent=2)}"
     )
-    if plan:
-        user_message += f"Schema Plan:\n{json.dumps(plan, indent=2)}\n\n"
-    user_message += f"Full Schema Reference:\n{schema_context}"
 
     response = _llm.invoke([
         {"role": "system", "content": _SYSTEM_PROMPT},

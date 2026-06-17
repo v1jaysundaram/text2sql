@@ -22,9 +22,11 @@ venv/
 # --- Claude Code ---
 .claude/
 
-# --- Local planning & notes ---
-nextsteps.md
-immediatenextsteps.md
+# --- Project-development workspace (Claude session memory, not core app) ---
+CLAUDE.md
+CONTEXT.md
+nodes/
+nextsteps/
 
 # --- ChromaDB vector store ---
 chroma_db/

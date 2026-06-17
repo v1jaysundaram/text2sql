@@ -116,8 +116,8 @@ if __name__ == "__main__":
     #question = "What is the total revenue by customer state for delivered orders in 2018?"
     #question = "List top sellers by state alongside their average review score"
     #question = "How many users signed up in the last month, and which marketing channel brought them in?"
-    #question = "What is the average review score by product category?"
-    question = "Give me 5 customer names and their customer id at random"
+    question = "What is the average review score by product category?"
+    #question = "Give me 5 customer names and their customer id at random"
     result = run_text2sql(question, debug=True)
     output = (
         result.get("sql_query")
